@@ -5,8 +5,9 @@
       <n-space vertical align="center" size="large">
         <n-avatar
           round
+          lazy
           :size="isMobile ? 80 : 100"
-          src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
+          src="../../public/avator.jpg"
         />
         <div class="intro-text">
           <n-h2 style="margin-bottom: 2px;">Crist Yang</n-h2>
@@ -151,19 +152,18 @@
 <script setup lang="ts">
 import {
   LogoVue,
-  LogoJavascript,
-  Language,
   Code,
   HardwareChip,
-  Settings,
-  Wifi,
   LogoDocker
 } from '@vicons/ionicons5'
 
 import { LogoPython } from '@vicons/carbon'
-import { Cpu } from '@vicons/tabler'
+import { BrandJavascript } from '@vicons/tabler'
 import { Java } from '@vicons/fa'
 import type { Component } from 'vue'
+import { defineComponent } from 'vue'
+import { Icon } from '@iconify/vue'
+
 
 const isMobile = ref(false)
 
@@ -191,30 +191,66 @@ const latestPosts = [
   { id: 5, title: '部署个人网站到 Vercel', category: 'DevOps', date: '2024-12-01' }
 ]
 
-const techStack: TechType[] = ['Vue 3', 'TS', 'Naive UI', 'Docker']
+const GoIcon = defineComponent({
+  render() {
+    return h(Icon, { icon: 'simple-icons:jaeger' })
+  }
+})
+
+const TsIcon = defineComponent({
+  render() {
+    return h(Icon, { icon: 'simple-icons:typescript' })
+  }
+})
+
+const CppIcon = defineComponent({
+  render() {
+    return h(Icon, { icon: 'simple-icons:cplusplus' })
+  }
+})
+
+const EspIcon = defineComponent({
+  render() {
+    return h(Icon, { icon: 'simple-icons:espressif' })
+  }
+})
+
+const MqttIcon = defineComponent({
+  render() {
+    return h(Icon, { icon: 'simple-icons:mqtt' })
+  }
+})
+
+const StmIcon = defineComponent({
+  render() {
+    return h(Icon, { icon: 'simple-icons:stmicroelectronics' })
+  }
+})
+
+const techStack: TechType[] = ['Vue 3', 'TypeScript', 'JavaScript', 'Docker']
 const techStackLanguage: TechType[] = ['Java', 'Go', 'Python', 'C/C++']
 const techStackIoT: TechType[] = ['Arduino', 'ESP32', 'Mqtt', 'STM32']
 
-type TechType = 'Vue 3' | 'TS' | 'Naive UI' | 'Docker' | 'Java' | 'Go' | 'Python' | 'C/C++' | 'Arduino' | 'ESP32' | 'Mqtt' | 'STM32'
+type TechType = 'Vue 3' | 'TypeScript' | 'JavaScript' | 'Docker' | 'Java' | 'Go' | 'Python' | 'C/C++' | 'Arduino' | 'ESP32' | 'Mqtt' | 'STM32'
 
 const iconMap: Record<TechType, Component> = {
   // Web技术栈
   'Vue 3': LogoVue,
-  'TS': LogoJavascript,
-  'Naive UI': Settings,
+  'TypeScript': TsIcon,
+  'JavaScript': BrandJavascript,
   'Docker': LogoDocker,
 
   // 编程语言
   'Java': Java,
-  'Go': Language,
+  'Go': GoIcon,
   'Python': LogoPython,
-  'C/C++': Code,
+  'C/C++': CppIcon,
 
   // IoT相关
   'Arduino': HardwareChip,
-  'ESP32': HardwareChip,
-  'Mqtt': Wifi,
-  'STM32': Cpu
+  'ESP32': EspIcon,
+  'Mqtt': MqttIcon,
+  'STM32': StmIcon
 }
 
 const getIcon = (tech: TechType) => {
