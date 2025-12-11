@@ -7,7 +7,7 @@
           round
           lazy
           :size="isMobile ? 80 : 100"
-          src="../../public/avator.jpg"
+          src="/avator.jpg"
         />
         <div class="intro-text">
           <n-h2 style="margin-bottom: 2px;">Crist Yang</n-h2>
@@ -61,7 +61,7 @@
       </n-grid-item>
 
       <!-- 右侧（仅桌面）：关于 + 技术栈 + 社交 -->
-      <n-grid-item v-if="!isMobile" class="right-content">
+      <n-grid-item class="right-content">
         <!-- 关于我 -->
         <n-card title="👨‍💻 关于我" :bordered="false" size="medium">
           <n-p>- 👨‍🎓 在校学生，就读于重庆邮电大学，物联网工程系。</n-p>
@@ -115,36 +115,6 @@
         </n-card>
       </n-grid-item>
 
-    <n-grid-item v-else>
-    <!-- 手机端：关于 + 技术栈 + 社交（放在底部） -->
-      <n-card title="👨‍💻 关于我" :bordered="false" size="small">
-        <n-p>全栈开发工程师，现居杭州。</n-p>
-        <n-p>热爱开源，GitHub 有 1.2k+ Stars。</n-p>
-      </n-card>
-
-      <n-card title="🛠 技术栈" :bordered="false" size="small" style="margin-top: 16px;">
-        <n-space wrap>
-          <n-tag v-for="tech in techStack" :key="tech" type="success" size="small">
-            {{ tech }}
-          </n-tag>
-        </n-space>
-      </n-card>
-
-      <n-card title="📬 联系我" :bordered="false" size="small" style="margin-top: 16px;">
-        <n-space vertical>
-          <n-button text tag="a" href="mailto:zhangsan@example.com">
-            📧 zhangsan@example.com
-          </n-button>
-          <n-button text tag="a" href="https://github.com/zhangsan" target="_blank">
-            🐙 GitHub (@zhangsan)
-          </n-button>
-          <n-button text tag="a" href="https://twitter.com/zhangsan_dev" target="_blank">
-            🐦 Twitter (@zhangsan_dev)
-          </n-button>
-        </n-space>
-      </n-card>
-    </n-grid-item>
-
     </n-grid>
   </div>
 </template>
@@ -165,7 +135,10 @@ import { defineComponent } from 'vue'
 import { Icon } from '@iconify/vue'
 
 
-const isMobile = ref(false)
+const isMobile = ref(window.innerWidth < 768)
+window.addEventListener('resize', () => {
+  isMobile.value = window.innerWidth < 768
+})
 
 // 模拟数据
 const featuredPosts = [
