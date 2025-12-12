@@ -113,6 +113,7 @@
             :src="post.thumbnail || defaultThumbnail"
             alt=""
             loading="lazy"
+            style="object-fit: cover; object-position: center;"
           />
         </div>
       </div>
@@ -124,7 +125,7 @@
           :page-count="totalPages"
           :page-size="pageSize"
           show-size-picker
-          :page-sizes="[6, 12, 20]"
+          :page-sizes="[12, 20]"
           @update:page-size="handlePageSizeChange"
           class="pagination"
         />
@@ -160,7 +161,7 @@ interface BlogPost {
 const allPosts = ref<BlogPost[]>([]);
 const loading = ref<boolean>(true);
 const currentPage = ref<number>(1);
-const pageSize = ref<number>(6);
+const pageSize = ref<number>(12);
 const selectedDate = ref<string | undefined>(undefined);
 const selectedTag = ref<string | undefined>(undefined);
 const searchKeyword = ref<string>('');
@@ -204,6 +205,7 @@ const fullTextSearch = (query: string): number[] => {
   }
   return resultIds ? Array.from(resultIds) : [];
 };
+
 
 // 加载文章（模拟）
 const loadAllPosts = async () => {
@@ -264,8 +266,58 @@ const loadAllPosts = async () => {
         tags: ['Java', 'Spring', '后端'],
         date: '2024-11-10',
         excerpt: '从项目结构到异常处理，打造生产级后端服务...',
+      },
+      {
+        id: 9,
+        title: 'React Hooks 深入浅出',
+        tags: ['React', 'Hooks', '前端'],
+        date: '2024-10-15',
+        excerpt: '从 useState 到 useEffect，全面掌握 React Hooks...',
+      },
+      {
+        id: 10,
+        title: 'Docker 容器化部署指南',
+        tags: ['Docker', '容器', '部署'],
+        date: '2024-10-08',
+        excerpt: '手把手教你使用 Docker 打包和部署应用...',
+      },
+      {
+        id: 11,
+        title: 'Python 数据分析实战',
+        tags: ['Python', '数据分析', 'Pandas'],
+        date: '2024-09-30',
+        excerpt: '使用 Pandas 和 NumPy 进行数据处理和分析...',
+      },
+      {
+        id: 12,
+        title: '微服务架构设计原则',
+        tags: ['架构', '微服务', '设计'],
+        date: '2024-09-25',
+        excerpt: '探讨微服务架构的设计原则和最佳实践...',
+      },
+      {
+        id: 13,
+        title: 'Flutter 跨平台开发实践',
+        tags: ['Flutter', '移动开发', '跨平台'],
+        date: '2024-09-20',
+        excerpt: '一套代码，多端运行，Flutter 开发体验...',
+      },
+      {
+        id: 14,
+        title: 'Kubernetes 集群管理入门',
+        tags: ['K8s', '容器编排', '运维'],
+        date: '2024-09-15',
+        excerpt: '从基础概念到实际部署，全面了解 Kubernetes...',
+      },
+      {
+        id: 15,
+        title: 'Rust 内存安全机制解析',
+        tags: ['Rust', '内存管理', '系统编程'],
+        date: '2024-09-10',
+        excerpt: '深入理解 Rust 的所有权和借用检查机制...',
       }
     ];
+
 
     allPosts.value = mockData.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -477,8 +529,12 @@ const tagCounts = computed(() => {
       map[tag] = (map[tag] || 0) + 1;
     });
   });
-  return Object.entries(map).map(([name, count]) => ({ name, count }));
+  return Object.entries(map)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count) // 按数量降序排序
+    .slice(0, 20); // 只取前20个
 });
+
 
 const getTagColor = (tag: string) => {
   if (selectedTag.value === tag) {
@@ -500,34 +556,32 @@ const onTagSelect = (tag: string): void => {
 
 <style scoped>
 
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  position: fixed;
+  top: 24px; /* 与页面顶部边距保持一致 */
+  height: calc(100vh - 88px); /* 减去顶部边距和底部间距 */
+  overflow-y: auto;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  margin-left: 288px; /* 侧边栏宽度 + 间距 */
+  margin-top: 24px;
+}
+
 .blog-layout {
   display: flex;
   gap: 64px;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px 48px;
-  min-height: 100vh; /* 👈 改为 100vh，让布局撑满 */
-  align-items: start;
+  min-height: 100vh;
 }
 
-.main-content {
-  flex: 1;
-  min-width: 0;
-  min-height: 600px; /* 确保主内容区域足够高，激活 sticky */
-  display: flex;
-  flex-direction: column;
-}
 
-.sidebar {
-  width: 240px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 20px;
-  align-self: flex-start;
-  height: fit-content;
-  max-height: calc(100vh - 40px); /* 防止溢出屏幕 */
-  overflow-y: auto; /* 标签/日历太多时可滚动 */
-}
 
 .sidebar-title {
   font-size: 16px;
@@ -643,9 +697,14 @@ const onTagSelect = (tag: string): void => {
   .sidebar {
     width: 100%;
     position: static;
+    left: auto;
     margin-bottom: 32px;
   }
 
+  .main-content {
+    margin-left: 0;
+  }
+  
   .post-item-layout {
     flex-direction: column;
     gap: 12px;
