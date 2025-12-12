@@ -70,18 +70,41 @@
             {{ post.title }}
           </router-link>
           <div class="post-meta">
-            <n-space size="small">
-              <n-tag
-                v-for="tag in post.tags"
-                :key="tag"
-                type="info"
-                size="small"
-                style="margin-right: 4px;"
-              >
-                {{ tag }}
-              </n-tag>
-              <n-text type="secondary">{{ post.date }}</n-text>
-            </n-space>
+            <!-- 使用 NAvatarGroup 展示标签头像 -->
+            <n-avatar-group
+              :options="getPostTagOptions(post)"
+              :max="2"
+              size="small"
+              :style="{ display: 'inline-flex', gap: '4px' }"
+            >
+              <!-- 自定义每个 avatar -->
+              <template #avatar="{ option }">
+                <n-tooltip placement="top">
+                  <template #trigger>
+                    <n-avatar
+                      :src="option.src"
+                      :fallback="{ text: option.name?.[0]?.toUpperCase() || '?' }"
+                      style="cursor: pointer;"
+                      @click.stop="onTagSelect(option.name)"
+                    />
+                  </template>
+                  {{ option.name }}
+                </n-tooltip>
+              </template>
+
+              <template #rest="{ rest, options: restOptions }">
+                <n-dropdown
+                  :options="createDropdownOptions(restOptions)"
+                  placement="top"
+                  trigger="hover"
+                  :style="{ cursor: 'pointer' }"
+                >
+                  <n-avatar>+{{ rest }}</n-avatar>
+                </n-dropdown>
+              </template>
+            </n-avatar-group>
+
+            <n-text type="secondary" class="post-date">{{ post.date }}</n-text>
           </div>
           <p class="post-excerpt">{{ post.excerpt }}</p>
         </div>
@@ -96,16 +119,16 @@
 
       <div class="pagination-wrapper">
         <n-pagination
-          v-if="totalPages > 1"
+          v-show="totalPages > 1"
           v-model:page="currentPage"
           :page-count="totalPages"
           :page-size="pageSize"
           show-size-picker
           :page-sizes="[6, 12, 20]"
           @update:page-size="handlePageSizeChange"
-          style="justify-content: center;"
+          class="pagination"
         />
-        <div v-else style="height: 40px;"></div>
+        <div v-show="totalPages <= 1" class="pagination-placeholder"></div>
       </div>
 
       <n-empty
@@ -118,8 +141,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
-import { useMessage } from 'naive-ui';
+import { ref, computed, onMounted, watch, onUnmounted, h } from 'vue';
+import { useMessage, NAvatar } from 'naive-ui';
 import HeatmapCalendar from '@/components/HeatmapCalendar.vue';
 
 // 默认占位图（80x80 SVG）
@@ -150,18 +173,12 @@ const blurTimer = ref<number | null>(null);
 // ======================
 let mockInvertedIndex: Record<string, number[]> = {};
 
-/**
- * 构建倒排索引（小写分词）
- */
 const buildMockInvertedIndex = (posts: BlogPost[]): void => {
   const index: Record<string, number[]> = {};
   posts.forEach(post => {
     const terms = new Set<string>();
-    // 标题分词
     post.title.toLowerCase().split(/\s+/).forEach(t => terms.add(t));
-    // 标签加入
     post.tags.forEach(tag => terms.add(tag.toLowerCase()));
-    // 写入索引
     terms.forEach(term => {
       if (!index[term]) index[term] = [];
       if (!index[term].includes(post.id)) {
@@ -172,15 +189,11 @@ const buildMockInvertedIndex = (posts: BlogPost[]): void => {
   mockInvertedIndex = index;
 };
 
-/**
- * 全文搜索核心函数（AND 逻辑）
- */
 const fullTextSearch = (query: string): number[] => {
   const terms = query.toLowerCase().trim().split(/\s+/).filter(t => t.length > 0);
   if (terms.length === 0) return [];
 
   let resultIds: Set<number> | null = null;
-
   for (const term of terms) {
     const ids = mockInvertedIndex[term] || [];
     if (resultIds === null) {
@@ -189,7 +202,6 @@ const fullTextSearch = (query: string): number[] => {
       resultIds = new Set(ids.filter(id => resultIds!.has(id)));
     }
   }
-
   return resultIds ? Array.from(resultIds) : [];
 };
 
@@ -255,12 +267,9 @@ const loadAllPosts = async () => {
       }
     ];
 
-    // 按时间倒序
     allPosts.value = mockData.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-
-    // 构建搜索索引
     buildMockInvertedIndex(allPosts.value);
   } catch (error) {
     useMessage().error('加载文章失败');
@@ -281,7 +290,76 @@ onUnmounted(() => {
   }
 });
 
-// 获取所有建议词（标题 + 标签）
+// ======================
+// 🖼️ 标签头像生成（带彩色背景 SVG）
+// ======================
+
+type ColorHex = `#${string}`;
+
+const stringToColor = (str: string | undefined): ColorHex => {
+  const colors: ColorHex[] = [
+    '#fce7f3', '#e0f2fe', '#dcfce7', '#fff7ed', '#ede9fe',
+    '#ffe4e6', '#ffedd5', '#dcf5e9', '#e6f7ff', '#f0f9ff'
+  ];
+  if (!str) {
+    return colors[0] as ColorHex; // 明确的类型断言
+  }
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length] as ColorHex; // 明确的类型断言
+};
+
+// ✅ 现在会被使用！
+const PlaceholderSvg = (text: string): string => {
+  const char = text?.[0]?.toUpperCase() || '?';
+  const bgColor = stringToColor(text) || '#fce7f3'; // 添加默认颜色
+  const textColor = '#334155';
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="16" fill="${bgColor}"/>
+      <text x="16" y="21" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="${textColor}" font-weight="500">${char}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
+const tagIconMap: Record<string, string> = {};
+
+
+const getPostTagOptions = (post: BlogPost) => {
+  return post.tags.map(tag => {
+    // 尝试加载本地图标
+    return {
+      name: tag,
+      src: tagIconMap[tag] || PlaceholderSvg(tag),
+      fallbackText: tag?.[0]?.toUpperCase() || '?'
+    };
+  });
+};
+
+
+const createDropdownOptions = (restOptions: { name: string; src: string; fallbackText: string }[]) => {
+  return restOptions.map(opt => ({
+    key: opt.name,
+    label: () =>
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } }, [
+        h(NAvatar, {
+          size: 'small',
+          src: opt.src,
+          fallback: { text: opt.fallbackText }
+        }),
+        h('span', opt.name)
+      ]),
+    onClick: () => onTagSelect(opt.name)
+  }));
+};
+
+// ======================
+// 🔎 搜索建议 & 防抖
+// ======================
+
 const getAllKeywords = (): string[] => {
   const keywords = new Set<string>();
   allPosts.value.forEach(post => {
@@ -291,7 +369,6 @@ const getAllKeywords = (): string[] => {
   return Array.from(keywords);
 };
 
-// 计算搜索建议
 const computeSuggestions = (query: string): void => {
   if (!query.trim()) {
     searchSuggestions.value = [];
@@ -307,7 +384,6 @@ const computeSuggestions = (query: string): void => {
   showSuggestions.value = matches.length > 0;
 };
 
-// 防抖
 const debounce = <T extends (...args: string[]) => void>(
   func: T,
   delay: number
@@ -358,24 +434,22 @@ const onSearch = (): void => {
 };
 
 // ======================
-// ✅ 筛选逻辑（搜索 + 日期 + 标签）
+// ✅ 筛选逻辑
 // ======================
+
 const filteredPosts = computed(() => {
   let candidates = [...allPosts.value];
 
-  // 1. 全文搜索
   if (searchKeyword.value.trim()) {
     const ids = fullTextSearch(searchKeyword.value);
     const matchedIds = new Set(ids);
     candidates = candidates.filter(post => matchedIds.has(post.id));
   }
 
-  // 2. 日期筛选
   if (selectedDate.value) {
     candidates = candidates.filter(post => post.date === selectedDate.value);
   }
 
-  // 3. 标签筛选
   if (selectedTag.value) {
     candidates = candidates.filter(post => post.tags.includes(selectedTag.value!));
   }
@@ -396,7 +470,6 @@ const handlePageSizeChange = (size: number): void => {
   currentPage.value = 1;
 };
 
-// 标签统计
 const tagCounts = computed(() => {
   const map: Record<string, number> = {};
   allPosts.value.forEach(post => {
@@ -426,14 +499,23 @@ const onTagSelect = (tag: string): void => {
 </script>
 
 <style scoped>
+
 .blog-layout {
   display: flex;
   gap: 64px;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px 48px;
-  min-height: calc(100vh - 100px);
+  min-height: 100vh; /* 👈 改为 100vh，让布局撑满 */
   align-items: start;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 600px; /* 确保主内容区域足够高，激活 sticky */
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar {
@@ -443,6 +525,8 @@ const onTagSelect = (tag: string): void => {
   top: 20px;
   align-self: flex-start;
   height: fit-content;
+  max-height: calc(100vh - 40px); /* 防止溢出屏幕 */
+  overflow-y: auto; /* 标签/日历太多时可滚动 */
 }
 
 .sidebar-title {
@@ -488,7 +572,14 @@ const onTagSelect = (tag: string): void => {
 }
 
 .post-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   margin: 4px 0 8px;
+}
+
+.post-date {
+  margin-left: 8px;
 }
 
 .post-excerpt {
@@ -512,7 +603,6 @@ const onTagSelect = (tag: string): void => {
   background-color: #f8fafc;
 }
 
-/* 搜索建议样式 */
 .search-box {
   position: relative;
   margin: 16px 0;
@@ -544,7 +634,6 @@ const onTagSelect = (tag: string): void => {
   background-color: #f9fafb;
 }
 
-/* 小屏响应式 */
 @media (max-width: 640px) {
   .blog-layout {
     flex-direction: column;
@@ -577,5 +666,14 @@ const onTagSelect = (tag: string): void => {
   display: flex;
   justify-content: center;
   margin-top: 32px;
+  min-height: 40px; /* 或根据实际调整 */
+}
+
+.pagination,
+.pagination-placeholder {
+  height: 40px; /* 统一高度 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
