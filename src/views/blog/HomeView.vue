@@ -28,9 +28,9 @@
         <!-- 精选文章 -->
         <n-card :bordered="false" size="medium">
           <template #header>
-            <router-link to="/blog" class="featured-title">
+            <n-button text tag="a" @click="$router.push('/blog')" class="featured-title">
               🔥 精选文章
-            </router-link>
+            </n-button>
           </template>
           <n-list>
             <n-list-item v-for="post in featuredPosts" :key="post.id">
@@ -133,7 +133,11 @@
   <footer class="site-footer">
     <div class="footer-content">
       <div class="copyright">
-        <span class="icp">渝ICP备2025056615号</span>
+        <span class="icp">
+          <n-button text tag="a" href="https://beian.miit.gov.cn/" target="_blank">
+              渝ICP备2025056615号
+          </n-button>
+          </span>
         <span>© {{ new Date().getFullYear() }} Crist Yang.</span>
       </div>
     </div>
@@ -313,7 +317,7 @@ const getIcon = (tech: TechType) => {
 .featured-title {
   color: inherit;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
 }
