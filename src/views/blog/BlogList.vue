@@ -119,10 +119,14 @@
         </div>
         <div class="post-thumbnail">
           <img
-            :src="post.thumbnail || defaultThumbnail"
-            alt=""
+            :src="processImageUrl(post.thumbnail)"
+            :alt="post.title || '文章缩略图'"
             loading="lazy"
-            style="object-fit: cover; object-position: center"
+            @error="handleImageError"
+            @load="handleImageLoad"
+            @loadstart="handleLoadStart"
+            :data-post-id="post.id"
+            class="thumbnail-img"
           />
         </div>
       </div>
@@ -498,6 +502,75 @@ const onTagSelect = (tag: string): void => {
   selectedTag.value = selectedTag.value === tag ? undefined : tag
   currentPage.value = 1
 }
+
+
+const handleLoadStart = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  const postId = Number(img.dataset.postId)
+  const post = allPosts.value.find(p => p.id === postId)
+  console.log('图片开始加载:', {
+    src: img.src,
+    hasThumbnail: !!post?.thumbnail,
+    thumbnailUrl: post?.thumbnail
+  })
+}
+
+const handleImageError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  const postId = Number(img.dataset.postId)
+
+  // 检查错误类型
+  if (e instanceof ErrorEvent) {
+    console.error('图片加载失败:', {
+      src: img.src,
+      error: e.message,
+      postId
+    })
+  }
+
+  // 如果是外部图片被阻止，尝试使用代理
+  if (img.src.includes('th.bing.com')) {
+    const proxyUrl = `/api/proxy/image?url=${encodeURIComponent(img.src)}`
+    img.src = proxyUrl
+    return
+  }
+
+  // 其他错误使用默认图片
+  img.src = defaultThumbnail
+}
+
+// 添加图片URL处理函数
+const processImageUrl = (url?: string): string => {
+  if (!url) return defaultThumbnail
+
+  // 如果是外部图片，使用代理
+  if (url.includes('th.bing.com')) {
+    return `/api/proxy/image?url=${encodeURIComponent(url)}`
+  }
+
+  return url
+}
+
+
+const handleImageLoad = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  const postId = Number(img.dataset.postId)
+  console.log('图片加载成功:', {
+    src: img.src,
+    naturalWidth: img.naturalWidth,
+    naturalHeight: img.naturalHeight,
+    displayWidth: img.offsetWidth,
+    displayHeight: img.offsetHeight,
+    computedStyle: {
+      display: window.getComputedStyle(img).display,
+      visibility: window.getComputedStyle(img).visibility,
+      opacity: window.getComputedStyle(img).opacity
+    },
+    postId
+  })
+}
+
+
 </script>
 
 <style scoped>
@@ -678,4 +751,28 @@ const onTagSelect = (tag: string): void => {
   align-items: center;
   justify-content: center;
 }
+
+
+.post-thumbnail {
+  width: 160px;
+  height: 90px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.thumbnail-img:hover {
+  transform: scale(1.05);
+}
+
 </style>
