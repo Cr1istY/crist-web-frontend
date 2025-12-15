@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     HeatmapCalendar: typeof import('./src/components/HeatmapCalendar.vue')['default']
+    HeatmapCalendarComponent: typeof import('./src/components/HeatmapCalendarComponent.vue')['default']
     NAvatar: typeof import('naive-ui')['NAvatar']
     NAvatarGroup: typeof import('naive-ui')['NAvatarGroup']
     NButton: typeof import('naive-ui')['NButton']

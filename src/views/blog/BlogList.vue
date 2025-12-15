@@ -157,7 +157,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, onUnmounted, h } from 'vue'
 import { useMessage, NAvatar } from 'naive-ui'
-import HeatmapCalendar from '@/components/HeatmapCalendar.vue'
+import HeatmapCalendar from '@/components/HeatmapCalendarComponent.vue'
 
 // 默认占位图（80x80 SVG）
 const defaultThumbnail =
