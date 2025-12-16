@@ -165,10 +165,10 @@
     </main>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, onUnmounted, h } from 'vue'
 import { useMessage, NAvatar } from 'naive-ui'
+import { useRoute, useRouter } from 'vue-router'
 import HeatmapCalendar from '@/components/HeatmapCalendarComponent.vue'
 import { EyeOutline, HeartOutline } from '@vicons/ionicons5'
 
@@ -243,11 +243,10 @@ const fullTextSearch = (query: string): number[] => {
 
   let resultIds: Set<number> | null = null
   for (const term of terms) {
-    // 修改：添加类型断言和过滤，确保只包含有效的数字
     const ids = Object.keys(mockInvertedIndex)
-      .filter(key => key.includes(term))
-      .flatMap(key => mockInvertedIndex[key] || [])
-      .filter((id): id is number => id !== undefined)
+      .filter((key) => key.includes(term))
+      .flatMap((key) => mockInvertedIndex[key] || [])
+      .filter((id): id is number => typeof id === 'number')
     if (resultIds === null) {
       resultIds = new Set(ids)
     } else {
@@ -264,23 +263,21 @@ const loadAllPosts = async () => {
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
-    const apiPost: ApiPost[] = await response.json()
+    const apiPosts: ApiPost[] = await response.json()
 
-    const blogPost: BlogPost[] = apiPost.map((post) => {
-      return {
-        id: post.id,
-        title: post.title,
-        tags: post.tags,
-        date: post.date,
-        excerpt: post.excerpt,
-        views: post.views > 10000 ? post.views :post.views * 100,
-        likes: post.likes > 10000 ? post.likes :post.likes * 100,
-        thumbnail: post.thumbnail,
-      }
-    })
+    const blogPosts: BlogPost[] = apiPosts.map((post) => ({
+      id: post.id,
+      title: post.title,
+      tags: post.tags,
+      date: post.date,
+      excerpt: post.excerpt,
+      views: post.views > 10000 ? post.views : post.views * 100,
+      likes: post.likes > 10000 ? post.likes : post.likes * 100,
+      thumbnail: post.thumbnail,
+    }))
 
-    allPosts.value = blogPost.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    allPosts.value = blogPosts.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     )
     buildMockInvertedIndex(allPosts.value)
   } catch (error) {
@@ -322,19 +319,19 @@ const stringToColor = (str: string | undefined): ColorHex => {
     '#f0f9ff',
   ]
   if (!str) {
-    return colors[0] as ColorHex // 明确的类型断言
+    return colors[0]! // 使用非空断言确保返回值
   }
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash)
   }
-  return colors[Math.abs(hash) % colors.length] as ColorHex // 明确的类型断言
+  return colors[Math.abs(hash) % colors.length]! // 使用非空断言确保返回值
 }
 
-// ✅ 现在会被使用！
+
 const PlaceholderSvg = (text: string): string => {
   const char = text?.[0]?.toUpperCase() || '?'
-  const bgColor = stringToColor(text) || '#fce7f3' // 添加默认颜色
+  const bgColor = stringToColor(text)
   const textColor = '#334155'
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
@@ -348,20 +345,15 @@ const PlaceholderSvg = (text: string): string => {
 const tagIconMap: Record<string, string> = {}
 
 const getPostTagOptions = (post: BlogPost) => {
-  return post.tags.map((tag) => {
-    // 尝试加载本地图标
-    return {
-      name: tag,
-      src: tagIconMap[tag] || PlaceholderSvg(tag),
-      fallbackText: tag?.[0]?.toUpperCase() || '?',
-    }
-  })
+  return post.tags.map((tag) => ({
+    name: tag,
+    src: tagIconMap[tag] || PlaceholderSvg(tag),
+    fallbackText: tag?.[0]?.toUpperCase() || '?',
+  }))
 }
 
-
-
 const createDropdownOptions = (
-  restOptions: { name: string; src: string; fallbackText: string }[],
+  restOptions: { name: string; src: string; fallbackText: string }[]
 ) => {
   return restOptions.map((opt) => ({
     key: opt.name,
@@ -399,7 +391,6 @@ const computeSuggestions = (query: string): void => {
   }
   const lowerQuery = query.toLowerCase()
   const allKeywords = getAllKeywords()
-  // 修改：使用 includes 而不是严格的匹配
   const matches = allKeywords
     .filter((kw) => kw.toLowerCase().includes(lowerQuery))
     .slice(0, 5)
@@ -409,7 +400,7 @@ const computeSuggestions = (query: string): void => {
 
 const debounce = <T extends (...args: string[]) => void>(
   func: T,
-  delay: number,
+  delay: number
 ): ((...args: Parameters<T>) => void) => {
   let timeoutId: number | null = null
   return (...args: Parameters<T>) => {
@@ -454,6 +445,50 @@ const selectSuggestion = (text: string): void => {
 
 const onSearch = (): void => {
   currentPage.value = 1
+}
+
+// ======================
+// ✅ 路由参数同步：tag
+// ======================
+
+const route = useRoute()
+const router = useRouter()
+
+// 安全提取 tag 参数
+const extractTagFromQuery = (): string | undefined => {
+  const tag = route.query.tag
+  if (Array.isArray(tag)) {
+    return tag[0] ?? undefined
+  }
+  return tag ?? undefined
+}
+
+// 监听 URL 中的 tag 参数变化（包括初始加载）
+watch(
+  () => route.query.tag,
+  () => {
+    selectedTag.value = extractTagFromQuery()
+    currentPage.value = 1
+  },
+  { immediate: true }
+)
+
+// 用户点击标签时，同步到 URL
+const onTagSelect = (tag: string): void => {
+  const newTag = selectedTag.value === tag ? undefined : tag
+  selectedTag.value = newTag
+  currentPage.value = 1
+
+  // 构建新查询对象
+  const newQuery = { ...route.query }
+  if (newTag) {
+    newQuery.tag = newTag
+  } else {
+    delete newQuery.tag
+  }
+
+  // 无刷新更新 URL
+  router.push({ query: newQuery })
 }
 
 // ======================
@@ -502,8 +537,8 @@ const tagCounts = computed(() => {
   })
   return Object.entries(map)
     .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count) // 按数量降序排序
-    .slice(0, 20) // 只取前20个
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 20)
 })
 
 const getTagColor = (tag: string) => {
@@ -518,20 +553,18 @@ const onDateSelect = (date: string): void => {
   currentPage.value = 1
 }
 
-const onTagSelect = (tag: string): void => {
-  selectedTag.value = selectedTag.value === tag ? undefined : tag
-  currentPage.value = 1
-}
-
+// ======================
+// 🖼️ 图片处理
+// ======================
 
 const handleLoadStart = (e: Event) => {
   const img = e.target as HTMLImageElement
   const postId = Number(img.dataset.postId)
-  const post = allPosts.value.find(p => p.id === postId)
+  const post = allPosts.value.find((p) => p.id === postId)
   console.log('图片开始加载:', {
     src: img.src,
     hasThumbnail: !!post?.thumbnail,
-    thumbnailUrl: post?.thumbnail
+    thumbnailUrl: post?.thumbnail,
   })
 }
 
@@ -539,38 +572,30 @@ const handleImageError = (e: Event) => {
   const img = e.target as HTMLImageElement
   const postId = Number(img.dataset.postId)
 
-  // 检查错误类型
   if (e instanceof ErrorEvent) {
     console.error('图片加载失败:', {
       src: img.src,
       error: e.message,
-      postId
+      postId,
     })
   }
 
-  // 如果是外部图片被阻止，尝试使用代理
   if (img.src.includes('th.bing.com')) {
     const proxyUrl = `/api/proxy/image?url=${encodeURIComponent(img.src)}`
     img.src = proxyUrl
     return
   }
 
-  // 其他错误使用默认图片
   img.src = defaultThumbnail
 }
 
-// 添加图片URL处理函数
 const processImageUrl = (url?: string): string => {
   if (!url) return defaultThumbnail
-
-  // 如果是外部图片，使用代理
   if (url.includes('th.bing.com')) {
     return `/api/proxy/image?url=${encodeURIComponent(url)}`
   }
-
   return url
 }
-
 
 const handleImageLoad = (e: Event) => {
   const img = e.target as HTMLImageElement
@@ -584,13 +609,13 @@ const handleImageLoad = (e: Event) => {
     computedStyle: {
       display: window.getComputedStyle(img).display,
       visibility: window.getComputedStyle(img).visibility,
-      opacity: window.getComputedStyle(img).opacity
+      opacity: window.getComputedStyle(img).opacity,
     },
-    postId
+    postId,
   })
 }
 
-const formatNumber = (num: number) => {
+const formatNumber = (num: number): string => {
   if (num >= 1000) {
     return (num / 1000).toFixed(1) + 'k'
   }

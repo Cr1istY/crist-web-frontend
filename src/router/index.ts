@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/blog/HomeView.vue'
+import HomeView from '@/views/blog/HomeViewPage.vue'
 import NotFound from '@/views/NotFoundPage.vue'
 import BlogList from '@/views/blog/BlogList.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
+import BlogDetailPage from '@/views/blog/BlogDetailPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,6 +25,11 @@ const router = createRouter({
       name: 'login',
       component: AdminLogin,
       meta: { title: 'Admin Login' },
+    },
+    {
+      path: '/post/:id',
+      name: 'PostDetail',
+      component: BlogDetailPage,
     },
 
     // 404
