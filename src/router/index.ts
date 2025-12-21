@@ -4,6 +4,8 @@ import NotFound from '@/views/NotFoundPage.vue'
 import BlogList from '@/views/blog/BlogList.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
 import BlogDetailPage from '@/views/blog/BlogDetailPage.vue'
+import CreatePost from '@/views/admin/CreatePost.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +27,12 @@ const router = createRouter({
       name: 'login',
       component: AdminLogin,
       meta: { title: 'Admin Login' },
+    },
+    {
+      path: '/admin/create',
+      name: 'create',
+      component: CreatePost,
+      meta: { title: 'Create Post' },
     },
     {
       path: '/post/:id',

@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="blog-detail-wrapper">
     <!-- 装饰性背景：左右淡色渐变，仅视觉增强 -->

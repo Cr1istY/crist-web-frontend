@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="blog-layout">
     <!-- 左侧边栏 -->
