@@ -1,26 +1,18 @@
 <template>
   <n-layout style="padding: 20px">
     <div class="form-container">
-      <h2 class="form-title">Create New Post</h2>
+      <h2 class="form-title">创建新博客：</h2>
 
       <n-form ref="formRef" :model="post" label-placement="left" label-width="140px">
-        <n-form-item path="title" label="Title">
-          <n-input v-model:value="post.title" placeholder="Enter title" />
-        </n-form-item>
-
-        <n-form-item path="slug" label="Slug">
-          <n-input v-model:value="post.slug" placeholder="URL-friendly slug" />
-        </n-form-item>
-
-        <n-form-item path="thumbnail" label="Thumbnail">
+        <n-form-item path="thumbnail" label="封面">
           <n-input v-model:value="post.thumbnail" placeholder="Thumbnail URL" />
         </n-form-item>
 
-        <n-form-item path="content" label="Content">
+        <n-form-item path="content" label="内容">
           <MdEditor v-model="post.content" preview-theme="github" style="min-height: 300px" />
         </n-form-item>
 
-        <n-form-item path="excerpt" label="Excerpt">
+        <n-form-item path="excerpt" label="摘要">
           <n-input
             type="textarea"
             v-model:value="post.excerpt"
@@ -29,12 +21,12 @@
           />
         </n-form-item>
 
-        <n-form-item path="status" label="Status">
+        <n-form-item path="status" label="状态">
           <n-select v-model:value="post.status" :options="statusOptions" />
         </n-form-item>
 
         <!-- 分类选择 -->
-        <n-form-item path="category_id" label="Category">
+        <n-form-item path="category_id" label="分类">
           <n-select
             v-model:value="post.category_id"
             :options="categoryOptions"
@@ -43,21 +35,8 @@
           />
         </n-form-item>
 
-        <n-form-item path="tags" label="Tags">
+        <n-form-item path="tags" label="标签">
           <n-dynamic-tags v-model:value="post.tags" placeholder="Press Enter to add tags" />
-        </n-form-item>
-
-        <n-form-item path="meta_title" label="Meta Title">
-          <n-input v-model:value="post.meta_title" placeholder="SEO meta title (≤60 chars)" />
-        </n-form-item>
-
-        <n-form-item path="meta_description" label="Meta Description">
-          <n-input
-            type="textarea"
-            v-model:value="post.meta_description"
-            placeholder="SEO meta description (≤160 chars)"
-            :autosize="{ minRows: 2, maxRows: 3 }"
-          />
         </n-form-item>
 
         <n-space justify="end" style="margin-top: 24px">
@@ -75,8 +54,6 @@ import router from '@/router/index'
 import 'md-editor-v3/lib/style.css'
 import axios from 'axios'
 
-
-
 interface Category {
   id: number
   name: string
@@ -84,11 +61,10 @@ interface Category {
 
 // 表单数据
 const post = reactive({
-  title: '',
   slug: '',
   content: '',
   excerpt: '',
-  status: 'draft',
+  status: 'private',
   category_id: null as number | null, // 改为 number | null
   tags: [] as string[],
   meta_title: '',
@@ -99,9 +75,8 @@ const post = reactive({
 
 // 状态选项
 const statusOptions = [
-  { label: 'Draft', value: 'draft' },
-  { label: 'Published', value: 'published' },
-  { label: 'Private', value: 'private' },
+  { label: '公开', value: 'published' },
+  { label: '私密', value: 'private' },
 ]
 
 // 分类相关
