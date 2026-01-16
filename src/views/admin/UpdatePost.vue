@@ -1,7 +1,7 @@
 <template>
   <n-layout style="padding: 20px">
     <div class="form-container">
-      <h2 class="form-title">创建新博客：</h2>
+      <h2 class="form-title">修改博客：</h2>
 
       <n-form ref="formRef" :model="post" label-placement="left" label-width="140px">
         <n-form-item path="thumbnail" label="封面">
@@ -51,6 +51,7 @@
 import { reactive, ref, onMounted } from 'vue'
 import { MdEditor } from 'md-editor-v3'
 import router from '@/router/index'
+import { useRoute } from 'vue-router'
 import 'md-editor-v3/lib/style.css'
 import axios from 'axios'
 
@@ -61,13 +62,62 @@ interface Category {
 
 // 表单数据
 const post = reactive({
+  id: '',
   content: '',
   excerpt: '',
   status: 'private',
-  category_id: null as number | null,
+  category_id: null as string | null,
   tags: [] as string[],
   thumbnail: '',
 })
+
+// 类型定义
+interface BlogPost {
+  id: string
+  title: string
+  category_id: string
+  category: string
+  date: string
+  content: string
+  tags: string[]
+  views: number
+  likes: number
+  excerpt: string
+  status: string
+  thumbnail: string
+  meta_title?: string
+  meta_description?: string
+}
+
+// 获取文章
+const fetchPost = async (id: string): Promise<void> => {
+  try {
+    const response = await fetch(`/api/posts/get/${id}`)
+    if (!response.ok) throw new Error('文章不存在或已删除')
+    const data: BlogPost = await response.json()
+    post.id = data.id
+    post.content = data.content
+    post.excerpt = data.excerpt
+    post.status = data.status
+    post.category_id = data.category_id
+    post.tags = data.tags
+    post.thumbnail = data.thumbnail
+  } catch (error) {
+    console.error('Error fetching post:', error)
+  }
+}
+
+const route = useRoute()
+
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (typeof newId === 'string') {
+      fetchPost(newId)
+    }
+  },
+  { immediate: true },
+)
 
 // 状态选项
 const statusOptions = [
@@ -100,18 +150,17 @@ async function fetchCategories() {
 async function submitForm() {
   try {
     // 如果 category_id 是 null，可以传 null 或忽略（根据后端要求）
-    const response = await axios.post('/api/posts/create', post, {
+    const response = await axios.put(`/api/posts/update/${post.id}`, post, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-      }}
-    )
+      },
+    })
     if (response.status === 200) {
       router.push('/blog') // 重定向到文章列表页面
-    } else {
-      console.log(response.data)
     }
   } catch (error) {
     console.error('There was an error submitting your form!', error)
+    router.push('/admin')
   }
 }
 
