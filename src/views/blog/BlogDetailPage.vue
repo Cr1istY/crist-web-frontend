@@ -74,14 +74,14 @@
               >
                 ← 返回
               </n-button>
-              <n-button
-                type="tertiary"
-                size="small"
-                @click="sharePost"
-                style="font-weight: 500"
-              >
+              <n-button type="tertiary" size="small" @click="sharePost" style="font-weight: 500">
                 🔗 分享文章
               </n-button>
+              <router-link v-if="update_flag" :to="`/admin/update/${post.id}`">
+                <n-button type="tertiary" size="small" style="font-weight: 500">
+                  修改
+                </n-button>
+              </router-link>
             </n-space>
           </div>
         </n-card>
@@ -125,6 +125,12 @@ const error = ref<string | null>(null)
 const post = ref<BlogPost | null>(null)
 const isDark = ref(false)
 
+const update_flag = ref(false)
+const token = localStorage.getItem('access_token')
+if (token) {
+  update_flag.value = true
+}
+
 // 格式化数字（如 1200 → 1.2k）
 const formatNumber = (num: number): string => {
   if (num >= 1000) {
@@ -141,7 +147,7 @@ const fetchPost = async (id: string): Promise<void> => {
     const response = await fetch(`/api/posts/get/${id}`)
     if (!response.ok) throw new Error('文章不存在或已删除')
     const data: BlogPost = await response.json()
-    // 模拟数据放大（按你原有逻辑）
+    // 模拟数据放大
     data.views = data.views > 10000 ? data.views : data.views * 100
     data.likes = data.likes > 10000 ? data.likes : data.likes * 100
     post.value = data
@@ -213,7 +219,7 @@ watch(
       fetchPost(newId)
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 初始化主题（可选）

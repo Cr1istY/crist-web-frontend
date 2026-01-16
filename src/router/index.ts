@@ -5,6 +5,7 @@ import BlogList from '@/views/blog/BlogList.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
 import BlogDetailPage from '@/views/blog/BlogDetailPage.vue'
 import CreatePost from '@/views/admin/CreatePost.vue'
+import UpdatePost from '@/views/admin/UpdatePost.vue'
 
 
 const router = createRouter({
@@ -36,6 +37,15 @@ const router = createRouter({
         title: 'Create Post',
         requiresAuth: true
        },
+    },
+    {
+      path: '/admin/update/:id',
+      name: 'update',
+      component: UpdatePost,
+      meta: {
+        title: 'Update Post',
+        requiresAuth: true
+      }
     },
     {
       path: '/post/:id',
