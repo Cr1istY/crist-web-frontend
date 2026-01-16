@@ -119,7 +119,7 @@ const handleSubmit = async () => {
       if (token) {
         localStorage.setItem('access_token', token)
         message.success('登录成功')
-        router.push('/admin/dashboard')
+        router.push('/admin/create')
       } else {
         message.error('登录失败，请检查用户名和密码')
       }

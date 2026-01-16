@@ -75,7 +75,7 @@ import router from '@/router/index'
 import 'md-editor-v3/lib/style.css'
 import axios from 'axios'
 
-const formRef = ref()
+
 
 interface Category {
   id: number

@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
 import HomeView from '@/views/blog/HomeViewPage.vue'
 import NotFound from '@/views/NotFoundPage.vue'
 import BlogList from '@/views/blog/BlogList.vue'
@@ -32,7 +32,10 @@ const router = createRouter({
       path: '/admin/create',
       name: 'create',
       component: CreatePost,
-      meta: { title: 'Create Post' },
+      meta: {
+        title: 'Create Post',
+        requiresAuth: true
+       },
     },
     {
       path: '/post/:id',
@@ -48,6 +51,23 @@ const router = createRouter({
       meta: { title: '页面走丢了' },
     },
   ],
+})
+
+router.beforeEach((to: RouteLocationNormalized, from, next) => {
+  const token = localStorage.getItem('access_token')
+
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!token) {
+      next({
+        path: '/admin',
+        query: { redirect: to.fullPath },
+      })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 export default router
