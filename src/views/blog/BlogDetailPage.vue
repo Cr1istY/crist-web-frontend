@@ -75,7 +75,10 @@
                 ← 返回
               </n-button>
               <n-button type="tertiary" size="small" @click="sharePost" style="font-weight: 500">
-                🔗 分享文章
+                🤝 分享
+              </n-button>
+              <n-button :type="like_flag ? 'warning' : 'tertiary'" size="small" @click="likePost" style="font-weight: 500">
+                哎哟不错哟👍
               </n-button>
               <router-link v-if="update_flag" :to="`/admin/update/${post.id}`">
                 <n-button type="tertiary" size="small" style="font-weight: 500"> 修改 </n-button>
@@ -134,10 +137,13 @@ const post = ref<BlogPost | null>(null)
 const isDark = ref(false)
 
 const update_flag = ref(false)
+const like_flag = ref(false)
 const token = localStorage.getItem('access_token')
 if (token) {
   update_flag.value = true
 }
+
+
 
 // 格式化数字（如 1200 → 1.2k）
 const formatNumber = (num: number): string => {
@@ -221,6 +227,17 @@ const sharePost = async (): Promise<void> => {
     }
   }
 }
+
+const likePost = async (): Promise<void> => {
+  if (!post.value?.id) return
+  if (like_flag.value) return
+  try {
+    await fetch(`/api/posts/addLikes/${post.value?.id}`)
+  } finally {
+    like_flag.value = true
+  }
+}
+
 
 const deletePost = async (): Promise<void> => {
   if (!post.value?.id) return
