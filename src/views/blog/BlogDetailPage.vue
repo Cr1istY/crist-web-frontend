@@ -78,10 +78,17 @@
                 🔗 分享文章
               </n-button>
               <router-link v-if="update_flag" :to="`/admin/update/${post.id}`">
-                <n-button type="tertiary" size="small" style="font-weight: 500">
-                  修改
-                </n-button>
+                <n-button type="tertiary" size="small" style="font-weight: 500"> 修改 </n-button>
               </router-link>
+              <n-button
+                v-if="update_flag"
+                type="tertiary"
+                size="small"
+                @click="deletePost"
+                style="font-weight: 500"
+              >
+                删除
+              </n-button>
             </n-space>
           </div>
         </n-card>
@@ -96,7 +103,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMessage } from 'naive-ui'
+import { useMessage, useDialog } from 'naive-ui'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { EyeOutline, HeartOutline } from '@vicons/ionicons5'
@@ -119,6 +126,7 @@ interface BlogPost {
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -209,6 +217,39 @@ const sharePost = async (): Promise<void> => {
       }
     }
   }
+}
+
+const deletePost = async (): Promise<void> => {
+  if (!post.value?.id) return
+  dialog.warning({
+    title: '删除文章',
+    content: '确定要删除这篇文章吗？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        loading.value = true
+        const response = await fetch(`/api/posts/delete/${post.value?.id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('删除失败')
+        }
+        message.success('文章已删除')
+        router.push('/blog')
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : '删除失败'
+        message.error(msg)
+      } finally {
+        loading.value = false
+      }
+    },
+  })
 }
 
 // 监听路由变化
