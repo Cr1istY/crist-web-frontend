@@ -69,7 +69,7 @@
               <n-button
                 type="tertiary"
                 size="small"
-                @click="$router.back()"
+                @click="router.push('/blog')"
                 style="font-weight: 500"
               >
                 ← 返回
