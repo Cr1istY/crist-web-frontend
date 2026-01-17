@@ -591,11 +591,10 @@ const handleImageError = (e: Event) => {
 }
 
 const processImageUrl = (url?: string): string => {
-  if (!url) return defaultThumbnail
-  if (url.includes('th.bing.com')) {
+  if (url) {
     return `/api/proxy/image?url=${encodeURIComponent(url)}`
   }
-  return url
+  return ""
 }
 
 const handleImageLoad = (e: Event) => {

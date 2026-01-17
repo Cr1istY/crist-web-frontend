@@ -16,6 +16,18 @@
 
         <!-- 文章内容 -->
         <n-card v-else-if="post" :bordered="false" class="post-card" embedded>
+          <!-- 图片区 -->
+          <div class="post-image">
+            <n-image
+              :src="processImageUrl(post.thumbnail)"
+              :alt="post.title"
+              object-fit="cover"
+              preview-disabled
+              width="100%"
+              style="border-radius: 8px; margin-bottom: 24px"
+            />
+          </div>
+
           <!-- 标题区 -->
           <div class="post-header">
             <h1 class="post-title">{{ post.title }}</h1>
@@ -77,7 +89,12 @@
               <n-button type="tertiary" size="small" @click="sharePost" style="font-weight: 500">
                 🤝 分享
               </n-button>
-              <n-button :type="like_flag ? 'warning' : 'tertiary'" size="small" @click="likePost" style="font-weight: 500">
+              <n-button
+                :type="like_flag ? 'warning' : 'tertiary'"
+                size="small"
+                @click="likePost"
+                style="font-weight: 500"
+              >
                 哎哟不错哟👍
               </n-button>
               <router-link v-if="update_flag" :to="`/admin/update/${post.id}`">
@@ -124,6 +141,7 @@ interface BlogPost {
   excerpt: string
   meta_title?: string
   meta_description?: string
+  thumbnail?: string
 }
 
 const route = useRoute()
@@ -143,14 +161,20 @@ if (token) {
   update_flag.value = true
 }
 
-
-
 // 格式化数字（如 1200 → 1.2k）
 const formatNumber = (num: number): string => {
   if (num >= 1000) {
     return (num / 1000).toFixed(1) + 'k'
   }
   return num.toString()
+}
+
+// 图片处理
+const processImageUrl = (url?: string): string => {
+  if (url) {
+    return `/api/proxy/image?url=${encodeURIComponent(url)}`
+  }
+  return ""
 }
 
 // 获取文章
@@ -237,7 +261,6 @@ const likePost = async (): Promise<void> => {
     like_flag.value = true
   }
 }
-
 
 const deletePost = async (): Promise<void> => {
   if (!post.value?.id) return
@@ -411,6 +434,11 @@ onMounted(() => {
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid var(--n-border-color);
+}
+
+.post-image {
+  width: 100%;
+  margin-bottom: 24px;
 }
 
 /* 响应式 */
