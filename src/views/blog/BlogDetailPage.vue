@@ -171,6 +171,9 @@ const fetchPost = async (id: string): Promise<void> => {
       metaDesc.content = data.meta_description || data.excerpt || ''
       document.head.appendChild(metaDesc)
     }
+
+    // 添加views-出错不做处理
+    await fetch(`/api/posts/addViews/${id}`)
   } catch (err) {
     const msg = err instanceof Error ? err.message : '未知错误'
     error.value = msg
