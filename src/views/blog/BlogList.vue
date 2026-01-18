@@ -77,7 +77,7 @@
     <main class="main-content">
       <div v-for="post in paginatedPosts" :key="post.id" class="post-item-layout">
         <div class="post-text">
-          <router-link :to="`/post/${post.id}`" class="post-title">
+          <router-link :to="`/blog/${post.slug}`" class="post-title">
             {{ post.title }}
           </router-link>
           <div class="post-meta">
@@ -179,6 +179,7 @@ const defaultThumbnail =
 
 interface BlogPost {
   id: number
+  slug: string
   title: string
   tags: string[]
   date: string
@@ -188,16 +189,6 @@ interface BlogPost {
   thumbnail?: string
 }
 
-interface ApiPost {
-  id: number
-  title: string
-  tags: string[]
-  date: string
-  excerpt: string
-  views: number
-  likes: number
-  thumbnail?: string
-}
 
 const allPosts = ref<BlogPost[]>([])
 const loading = ref<boolean>(true)
@@ -264,16 +255,17 @@ const loadAllPosts = async () => {
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
-    const apiPosts: ApiPost[] = await response.json()
+    const apiPosts: BlogPost[] = await response.json()
 
     const blogPosts: BlogPost[] = apiPosts.map((post) => ({
       id: post.id,
+      slug: post.slug,
       title: post.title,
       tags: post.tags,
       date: post.date,
       excerpt: post.excerpt,
-      views: post.views > 10000 ? post.views : post.views * 100,
-      likes: post.likes > 10000 ? post.likes : post.likes * 100,
+      views: post.views,
+      likes: post.likes,
       thumbnail: post.thumbnail,
     }))
 

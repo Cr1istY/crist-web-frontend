@@ -6,6 +6,7 @@ import AdminLogin from '@/views/admin/AdminLogin.vue'
 import BlogDetailPage from '@/views/blog/BlogDetailPage.vue'
 import CreatePost from '@/views/admin/CreatePost.vue'
 import UpdatePost from '@/views/admin/UpdatePost.vue'
+import BlogDetailPageWithSlug from '@/views/blog/BlogDetailPageWithSlug.vue'
 
 
 const router = createRouter({
@@ -52,7 +53,11 @@ const router = createRouter({
       name: 'PostDetail',
       component: BlogDetailPage,
     },
-
+    {
+      path: '/blog/:slug',
+      name: 'PostDetailBySlug',
+      component: BlogDetailPageWithSlug,
+    },
     // 404
     {
       path: '/:pathMatch(.*)*',
