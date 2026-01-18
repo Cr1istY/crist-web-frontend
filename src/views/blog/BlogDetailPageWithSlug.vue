@@ -131,6 +131,7 @@ import { EyeOutline, HeartOutline } from '@vicons/ionicons5'
 // 类型定义
 interface BlogPost {
   id: number
+  slug: string
   title: string
   category: string
   date: string
@@ -178,16 +179,13 @@ const processImageUrl = (url?: string): string => {
 }
 
 // 获取文章
-const fetchPost = async (id: string): Promise<void> => {
+const fetchPost = async (slug: string): Promise<void> => {
   loading.value = true
   error.value = null
   try {
-    const response = await fetch(`/api/posts/get/${id}`)
+    const response = await fetch(`/api/posts/getBySlug/${slug}`)
     if (!response.ok) throw new Error('文章不存在或已删除')
     const data: BlogPost = await response.json()
-    // 模拟数据放大
-    data.views = data.views
-    data.likes = data.likes
     post.value = data
 
     // 设置 SEO
@@ -201,9 +199,8 @@ const fetchPost = async (id: string): Promise<void> => {
       metaDesc.content = data.meta_description || data.excerpt || ''
       document.head.appendChild(metaDesc)
     }
-
     // 添加views-出错不做处理
-    await fetch(`/api/posts/addViews/${id}`)
+    await fetch(`/api/posts/addViews/${post.value?.id}`)
   } catch (err) {
     const msg = err instanceof Error ? err.message : '未知错误'
     error.value = msg
@@ -297,10 +294,10 @@ const deletePost = async (): Promise<void> => {
 
 // 监听路由变化
 watch(
-  () => route.params.id,
-  (newId) => {
-    if (typeof newId === 'string') {
-      fetchPost(newId)
+  () => route.params.slug,
+  (newSlug) => {
+    if (typeof newSlug === 'string') {
+      fetchPost(newSlug)
     }
   },
   { immediate: true },
