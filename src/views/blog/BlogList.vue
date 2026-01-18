@@ -136,7 +136,6 @@
             :alt="post.title || '文章缩略图'"
             loading="lazy"
             @error="handleImageError"
-            @load="handleImageLoad"
             @loadstart="handleLoadStart"
             :data-post-id="post.id"
             class="thumbnail-img"
@@ -188,7 +187,6 @@ interface BlogPost {
   likes: number
   thumbnail?: string
 }
-
 
 const allPosts = ref<BlogPost[]>([])
 const loading = ref<boolean>(true)
@@ -270,7 +268,7 @@ const loadAllPosts = async () => {
     }))
 
     allPosts.value = blogPosts.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     )
     buildMockInvertedIndex(allPosts.value)
   } catch (error) {
@@ -321,7 +319,6 @@ const stringToColor = (str: string | undefined): ColorHex => {
   return colors[Math.abs(hash) % colors.length]! // 使用非空断言确保返回值
 }
 
-
 const PlaceholderSvg = (text: string): string => {
   const char = text?.[0]?.toUpperCase() || '?'
   const bgColor = stringToColor(text)
@@ -346,7 +343,7 @@ const getPostTagOptions = (post: BlogPost) => {
 }
 
 const createDropdownOptions = (
-  restOptions: { name: string; src: string; fallbackText: string }[]
+  restOptions: { name: string; src: string; fallbackText: string }[],
 ) => {
   return restOptions.map((opt) => ({
     key: opt.name,
@@ -384,16 +381,14 @@ const computeSuggestions = (query: string): void => {
   }
   const lowerQuery = query.toLowerCase()
   const allKeywords = getAllKeywords()
-  const matches = allKeywords
-    .filter((kw) => kw.toLowerCase().includes(lowerQuery))
-    .slice(0, 5)
+  const matches = allKeywords.filter((kw) => kw.toLowerCase().includes(lowerQuery)).slice(0, 5)
   searchSuggestions.value = matches
   showSuggestions.value = matches.length > 0
 }
 
 const debounce = <T extends (...args: string[]) => void>(
   func: T,
-  delay: number
+  delay: number,
 ): ((...args: Parameters<T>) => void) => {
   let timeoutId: number | null = null
   return (...args: Parameters<T>) => {
@@ -463,7 +458,7 @@ watch(
     selectedTag.value = extractTagFromQuery()
     currentPage.value = 1
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 用户点击标签时，同步到 URL
@@ -572,13 +567,6 @@ const handleImageError = (e: Event) => {
       postId,
     })
   }
-
-  if (img.src.includes('th.bing.com')) {
-    const proxyUrl = `/api/proxy/image?url=${encodeURIComponent(img.src)}`
-    img.src = proxyUrl
-    return
-  }
-
   img.src = defaultThumbnail
 }
 
@@ -586,26 +574,9 @@ const processImageUrl = (url?: string): string => {
   if (url) {
     return `/api/proxy/image?url=${encodeURIComponent(url)}`
   }
-  return ""
+  return ''
 }
 
-const handleImageLoad = (e: Event) => {
-  const img = e.target as HTMLImageElement
-  const postId = Number(img.dataset.postId)
-  console.log('图片加载成功:', {
-    src: img.src,
-    naturalWidth: img.naturalWidth,
-    naturalHeight: img.naturalHeight,
-    displayWidth: img.offsetWidth,
-    displayHeight: img.offsetHeight,
-    computedStyle: {
-      display: window.getComputedStyle(img).display,
-      visibility: window.getComputedStyle(img).visibility,
-      opacity: window.getComputedStyle(img).opacity,
-    },
-    postId,
-  })
-}
 
 const formatNumber = (num: number): string => {
   if (num >= 1000) {
@@ -802,7 +773,6 @@ const formatNumber = (num: number): string => {
   align-items: center;
   justify-content: center;
 }
-
 
 .post-thumbnail {
   width: 160px;
