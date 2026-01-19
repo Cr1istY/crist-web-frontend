@@ -572,7 +572,7 @@ const handleImageError = (e: Event) => {
 
 const processImageUrl = (url?: string): string => {
   if (url) {
-    return `/api/proxy/image?url=${encodeURIComponent(url)}`
+    return `/api/proxy/image?url=${encodeURIComponent(url)}&quality=low`
   }
   return ''
 }

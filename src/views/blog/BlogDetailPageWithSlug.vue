@@ -173,7 +173,7 @@ const formatNumber = (num: number): string => {
 // 图片处理
 const processImageUrl = (url?: string): string => {
   if (url) {
-    return `/api/proxy/image?url=${encodeURIComponent(url)}`
+    return `/api/proxy/image?url=${encodeURIComponent(url)}&quality=medium`
   }
   return ""
 }
