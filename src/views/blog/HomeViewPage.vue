@@ -77,10 +77,10 @@
             <n-grid-item class="right-content">
               <!-- 关于我 -->
               <n-card title="👨‍💻 关于我" :bordered="false" size="medium">
-                <n-p>- 👨‍🎓 在校学生，就读于重庆邮电大学，物联网工程系。</n-p>
-                <n-p>- 🌍 热爱开源，乐于分享，改变世界。</n-p>
-                <n-p>- 🛠️ 目前主要使用Java、Go、Python进行物联网平台开发。</n-p>
-                <n-p>- 📚 纸质书籍爱好者，热爱音乐，感动常在。</n-p>
+                <n-p>- 👨‍🎓 IoT Engineering student at CQUPT.</n-p>
+                <n-p>- 🌍 Who loves open-source and make an impact.</n-p>
+                <n-p>- 🛠️ Building AIoT systems with Java, Go, and Python.</n-p>
+                <n-p>- 📚 Book lover & music fan - Delighting You Always.</n-p>
               </n-card>
 
               <!-- 技术栈 -->
