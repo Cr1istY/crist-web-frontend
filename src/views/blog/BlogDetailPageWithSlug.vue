@@ -33,7 +33,7 @@
             <h1 class="post-title">{{ post.title }}</h1>
             <div class="post-meta">
               <n-tag type="info" size="small" round>{{ post.category }}</n-tag>
-              <n-text type="secondary">{{ post.date }}</n-text>
+              <n-text type="secondary">编辑于{{ post.date }}</n-text>
               <div class="post-stats">
                 <span class="stat-item">
                   <n-icon size="16" :component="EyeOutline" />
