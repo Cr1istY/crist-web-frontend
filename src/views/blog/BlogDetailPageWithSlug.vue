@@ -45,20 +45,25 @@
                 </span>
               </div>
             </div>
-
-            <!-- 标签云 -->
-            <div v-if="post.tags && post.tags.length > 0" class="post-tags">
-              <n-tag
-                v-for="tag in post.tags"
-                :key="tag"
-                size="small"
-                round
-                type="success"
-                @click="goToTag(tag)"
-                style="cursor: pointer; margin-right: 8px; margin-top: 8px"
-              >
-                {{ tag }}
-              </n-tag>
+            <div class="post-description-bootom">
+              <!-- 标签云 -->
+              <div v-if="post.tags && post.tags.length > 0" class="post-tags">
+                <n-tag
+                  v-for="tag in post.tags"
+                  :key="tag"
+                  size="small"
+                  round
+                  type="success"
+                  @click="goToTag(tag)"
+                  style="cursor: pointer; margin-right: 8px;"
+                >
+                  {{ tag }}
+                </n-tag>
+              </div>
+              <!--description-->
+              <div class="post-excerpt" v-if="post.excerpt.length > 0">
+                <n-text type="scendary">{{ post.excerpt }}</n-text>
+              </div>
             </div>
           </div>
 
@@ -175,7 +180,7 @@ const processImageUrl = (url?: string): string => {
   if (url) {
     return `/api/proxy/image?url=${encodeURIComponent(url)}&quality=medium`
   }
-  return ""
+  return ''
 }
 
 // 获取文章
@@ -382,10 +387,19 @@ onMounted(() => {
   font-size: 14px;
 }
 
-.post-tags {
+.post-description-bootom {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
+}
+
+.post-tags {
   gap: 8px;
+}
+
+.post-excerpt {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .markdown-container {
