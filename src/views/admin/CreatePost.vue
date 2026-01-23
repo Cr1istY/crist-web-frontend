@@ -63,7 +63,7 @@ interface Category {
 const post = reactive({
   content: '',
   excerpt: '',
-  status: 'private',
+  status: 'published',
   category_id: null as number | null,
   tags: [] as string[],
   thumbnail: '',
