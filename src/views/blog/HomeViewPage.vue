@@ -33,10 +33,10 @@
                   </n-button>
                 </template>
                 <n-list>
-                  <n-list-item v-for="post in hotPosts" :key="post.id">
+                  <n-list-item v-for="post in hotPosts" :key="post.slug">
                     <n-thing>
                       <template #header>
-                        <router-link :to="`/post/${post.id}`" class="post-title">
+                        <router-link :to="`/blog/${post.slug}`" class="post-title">
                           {{ post.title }}
                         </router-link>
                       </template>
@@ -57,8 +57,8 @@
               <!-- 最新文章 -->
               <n-card title="📝 最新文章" :bordered="false" size="medium" style="margin-top: 0px">
                 <n-list>
-                  <n-list-item v-for="post in latestPosts" :key="post.id">
-                    <router-link :to="`/post/${post.id}`" custom v-slot="{ navigate }">
+                  <n-list-item v-for="post in latestPosts" :key="post.slug">
+                    <router-link :to="`/blog/${post.slug}`" custom v-slot="{ navigate }">
                       <n-thing :title="post.title" @click="navigate" style="cursor: pointer">
                         <template #description>
                           <n-space size="small">
@@ -188,29 +188,22 @@ window.addEventListener('resize', () => {
 })
 
 interface HotPost {
-  id: number
+  slug: string
   title: string
   category: string
   date: string
   excerpt: string
 }
 
-interface LatestPost {
-  id: number
-  title: string
-  category: string
-  date: string
-}
-
 const hotPosts = ref<HotPost[]>([])
-const latestPosts = ref<LatestPost[]>([])
+const latestPosts = ref<HotPost[]>([])
 
 // 模拟数据
 const loadPosts = async () => {
   try {
     const [hot, latest] = await Promise.all([
       fetchPosts<HotPost>('/api/posts/hot'),
-      fetchPosts<LatestPost>('/api/posts/latest'),
+      fetchPosts<HotPost>('/api/posts/latest'),
     ])
 
     hotPosts.value = hot
