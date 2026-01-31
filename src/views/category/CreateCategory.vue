@@ -53,14 +53,11 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
+import { useCategoryTree } from '@/composables/useCategoryTree'
 import router from '@/router/index'
-import axios from 'axios'
+import service from '@/utils/request'
 
-interface Category {
-  id: string
-  name: string
-  parent_id?: string | null
-}
+const { categoryOptions, loading: loadingCategories, fetchCategories } = useCategoryTree()
 
 // 表单数据
 const category = reactive({
@@ -69,57 +66,9 @@ const category = reactive({
   parent_id: null as string | null,
 })
 
-// 构建分类树相关
-const UUID_NIL = '00000000-0000-0000-0000-000000000000'
-
 // 分类相关
-const categoryOptions = ref<{ label: string; value: string }[]>([])
-const loadingCategories = ref(false)
 const submitting = ref(false)
 const message = useMessage()
-
-// 获取分类列表（用于父分类选择）
-async function fetchCategories() {
-  loadingCategories.value = true
-  try {
-    const response = await axios.get('/api/category/getAll', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-      },
-    })
-
-    const buildTreeOptions = (
-      categories: Category[],
-      parentId: string | null = null,
-      depth = 0,
-    ): { label: string; value: string }[] => {
-      return categories
-        .filter((cat) => cat.parent_id === parentId)
-        .flatMap((cat) => {
-          const indent = '　'.repeat(depth) // 使用全角空格实现缩进
-          const currentOption = [
-            {
-              label: depth > 0 ? `${indent}└─ ${cat.name}` : cat.name,
-              value: cat.id,
-            },
-          ]
-          const children = buildTreeOptions(categories, cat.id, depth + 1)
-          return [...currentOption, ...children]
-        })
-    }
-    response.data.forEach((cat: Category) => {
-      if (cat.parent_id === UUID_NIL) {
-        cat.parent_id = null
-      }
-    })
-    categoryOptions.value = buildTreeOptions(response.data)
-  } catch (error) {
-    console.error('Failed to load categories:', error)
-    message.error('加载分类列表失败')
-  } finally {
-    loadingCategories.value = false
-  }
-}
 
 // 提交表单
 async function submitForm() {
@@ -144,12 +93,7 @@ async function submitForm() {
       requestData.parent_id = category.parent_id
     }
 
-    const response = await axios.post('/api/category/create', requestData, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json',
-      },
-    })
+    const response = await service.post('/category/create', requestData)
 
     if (response.status === 200) {
       message.success(response.data.message || '分类创建成功')

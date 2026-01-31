@@ -48,16 +48,15 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, onMounted } from 'vue'
 import { MdEditor } from 'md-editor-v3'
+import { useCategoryTree } from '@/composables/useCategoryTree'
 import router from '@/router/index'
 import 'md-editor-v3/lib/style.css'
-import axios from 'axios'
+import service from '@/utils/request'
 
-interface Category {
-  id: number
-  name: string
-}
+const { categoryOptions, loading: loadingCategories, fetchCategories } = useCategoryTree()
+
 
 // 表单数据
 const post = reactive({
@@ -75,36 +74,13 @@ const statusOptions = [
   { label: '私密', value: 'private' },
 ]
 
-// 分类相关
-const categoryOptions = ref<{ label: string; value: number }[]>([])
-const loadingCategories = ref(false)
-
-// 获取分类列表
-async function fetchCategories() {
-  loadingCategories.value = true
-  try {
-    const response = await axios.get('/api/category/getAll') // 假设返回 [{ id: 1, name: 'Tech' }, ...]
-    categoryOptions.value = response.data.map((cat: Category) => ({
-      label: cat.name,
-      value: cat.id,
-    }))
-  } catch (error) {
-    console.error('Failed to load categories:', error)
-    // 可选：显示通知
-  } finally {
-    loadingCategories.value = false
-  }
-}
 
 // 提交表单
 async function submitForm() {
   try {
     // 如果 category_id 是 null，可以传 null 或忽略（根据后端要求）
-    const response = await axios.post('/api/posts/create', post, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-      }}
-    )
+    const response = await service.post('/posts/create', post,
+  )
     if (response.status === 200) {
       router.push('/blog') // 重定向到文章列表页面
     } else {

@@ -48,19 +48,16 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, onMounted } from 'vue'
 import { MdEditor } from 'md-editor-v3'
 import router from '@/router/index'
 import { useRoute } from 'vue-router'
 import 'md-editor-v3/lib/style.css'
-import axios from 'axios'
+
 import service from '@/utils/request'
 import { useMessage } from 'naive-ui'
-
-interface Category {
-  id: number
-  name: string
-}
+import { useCategoryTree } from '@/composables/useCategoryTree'
+const { categoryOptions, loading: loadingCategories, fetchCategories } = useCategoryTree()
 
 const message = useMessage()
 
@@ -128,27 +125,6 @@ const statusOptions = [
   { label: '公开', value: 'published' },
   { label: '私密', value: 'private' },
 ]
-
-// 分类相关
-const categoryOptions = ref<{ label: string; value: number }[]>([])
-const loadingCategories = ref(false)
-
-// 获取分类列表
-async function fetchCategories() {
-  loadingCategories.value = true
-  try {
-    const response = await axios.get('/api/category/getAll') // 假设返回 [{ id: 1, name: 'Tech' }, ...]
-    categoryOptions.value = response.data.map((cat: Category) => ({
-      label: cat.name,
-      value: cat.id,
-    }))
-  } catch (error) {
-    console.error('Failed to load categories:', error)
-    // 可选：显示通知
-  } finally {
-    loadingCategories.value = false
-  }
-}
 
 // 提交表单
 async function submitForm() {
