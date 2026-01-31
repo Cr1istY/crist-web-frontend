@@ -1,5 +1,5 @@
-import axios from 'axios';
-import type { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios from 'axios'
+import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 import { message } from '@/utils/naiveDiscrete'
 import router from '@/router'
 
@@ -18,9 +18,9 @@ interface FailedQueueCallback {
 }
 
 const service: AxiosInstance = axios.create({
-    baseURL: '/api',
-    timeout: 5000,
-    withCredentials: true
+  baseURL: '/api',
+  timeout: 5000,
+  withCredentials: true,
 })
 
 service.interceptors.request.use((config) => {
@@ -35,7 +35,7 @@ let isRefreshing = false
 let failedQueue: FailedQueueCallback[] = []
 
 const processQueue = (error: Error | null, token: string | null = null) => {
-  failedQueue.forEach(callback => {
+  failedQueue.forEach((callback) => {
     if (error) {
       callback.reject(error)
     } else {
@@ -45,7 +45,6 @@ const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue = []
 }
 
-
 service.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -53,24 +52,28 @@ service.interceptors.response.use(
     if (oringnalRequest.customErrorHandling) {
       return Promise.reject(error)
     }
-    console.log("440011")
     if (error.response.status === 401 && !oringnalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
-        }).then(token => {
-          if (oringnalRequest.headers) {
-          oringnalRequest.headers.Authorization = `Bearer ${token}`
-          return service(oringnalRequest)
-          }
-        }).catch(error => {
-          return Promise.reject(error)
         })
+          .then((token) => {
+            if (oringnalRequest.headers) {
+              oringnalRequest.headers.Authorization = `Bearer ${token}`
+              return service(oringnalRequest)
+            }
+          })
+          .catch((error) => {
+            return Promise.reject(error)
+          })
       }
       oringnalRequest._retry = true
       isRefreshing = true
       try {
-        const { data: { access_token } } = await service.post<RefreshResponse>('/auth/refresh')
+        const {
+          data: { access_token },
+        } = await service.post<RefreshResponse>('/auth/refresh')
+        console.log('refresh token')
         localStorage.setItem('access_token', access_token)
         if (oringnalRequest.headers) {
           oringnalRequest.headers.Authorization = `Bearer ${access_token}`
@@ -80,7 +83,8 @@ service.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('access_token')
         message.error('登录已过期，请重新登录')
-        router.push({ name: 'login'})
+        console.log('440011')
+        router.push({ name: 'login' })
         if (refreshError instanceof Error) {
           processQueue(refreshError, null)
         } else {
@@ -92,12 +96,7 @@ service.interceptors.response.use(
     }
     message.error(error.response?.data?.message || '请求失败')
     return Promise.reject(error)
-  }
+  },
 )
 
-
-
 export default service
-
-
-

@@ -72,7 +72,6 @@ const category = reactive({
 // 构建分类树相关
 const UUID_NIL = '00000000-0000-0000-0000-000000000000'
 
-
 // 分类相关
 const categoryOptions = ref<{ label: string; value: string }[]>([])
 const loadingCategories = ref(false)
@@ -89,15 +88,21 @@ async function fetchCategories() {
       },
     })
 
-    const buildTreeOptions = (categories: Category[], parentId: string | null = null, depth = 0): { label: string; value: string }[] => {
+    const buildTreeOptions = (
+      categories: Category[],
+      parentId: string | null = null,
+      depth = 0,
+    ): { label: string; value: string }[] => {
       return categories
-        .filter(cat => cat.parent_id === parentId)
-        .flatMap(cat => {
+        .filter((cat) => cat.parent_id === parentId)
+        .flatMap((cat) => {
           const indent = '　'.repeat(depth) // 使用全角空格实现缩进
-          const currentOption = [{
-            label: depth > 0 ? `${indent}└─ ${cat.name}` : cat.name,
-            value: cat.id
-          }]
+          const currentOption = [
+            {
+              label: depth > 0 ? `${indent}└─ ${cat.name}` : cat.name,
+              value: cat.id,
+            },
+          ]
           const children = buildTreeOptions(categories, cat.id, depth + 1)
           return [...currentOption, ...children]
         })
@@ -108,7 +113,6 @@ async function fetchCategories() {
       }
     })
     categoryOptions.value = buildTreeOptions(response.data)
-
   } catch (error) {
     console.error('Failed to load categories:', error)
     message.error('加载分类列表失败')
@@ -149,10 +153,28 @@ async function submitForm() {
 
     if (response.status === 200) {
       message.success(response.data.message || '分类创建成功')
-      router.push('/categories')
+      router.push('/admin/dashboard')
     }
-  } catch (error: any) {
-    const errorMsg = error.response?.data?.error || '创建分类失败，请重试'
+  } catch (error: unknown) {
+    let errorMsg = '创建分类失败，请重试'
+    if (error && typeof error === 'object') {
+      const err = error as { response?: { data?: unknown } }
+      if (err.response?.data) {
+        const apiError = (err.response.data as { error?: unknown })?.error
+        if (typeof apiError === 'string') {
+          errorMsg = apiError
+        } else if (apiError && typeof apiError === 'object' && 'message' in apiError) {
+          const msg = (apiError as { message?: unknown }).message
+          if (typeof msg === 'string') errorMsg = msg
+        }
+      }
+    }
+
+    // 回退到原生 Error 对象的 message
+    if (errorMsg === '创建分类失败，请重试' && error instanceof Error) {
+      errorMsg = error.message || errorMsg
+    }
+
     console.error('Category creation error:', error)
     message.error(errorMsg)
   } finally {

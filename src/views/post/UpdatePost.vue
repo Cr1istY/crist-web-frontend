@@ -54,11 +54,15 @@ import router from '@/router/index'
 import { useRoute } from 'vue-router'
 import 'md-editor-v3/lib/style.css'
 import axios from 'axios'
+import service from '@/utils/request'
+import { useMessage } from 'naive-ui'
 
 interface Category {
   id: number
   name: string
 }
+
+const message = useMessage()
 
 // 表单数据
 const post = reactive({
@@ -150,17 +154,13 @@ async function fetchCategories() {
 async function submitForm() {
   try {
     // 如果 category_id 是 null，可以传 null 或忽略（根据后端要求）
-    const response = await axios.put(`/api/posts/update/${post.id}`, post, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-      },
-    })
+    const response = await service.put(`/posts/update/${post.id}`, post)
     if (response.status === 200) {
+      message.success('文章更新成功！')
       router.push('/blog') // 重定向到文章列表页面
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('There was an error submitting your form!', error)
-    router.push('/admin')
   }
 }
 

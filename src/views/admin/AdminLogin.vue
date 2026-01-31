@@ -112,14 +112,14 @@ const handleSubmit = async () => {
     try {
       // API 请求
       const res = await request.post<LoginResponse>('/login', formValue.value, {
-        customErrorHandling: true
+        customErrorHandling: true,
       } as AxiosRetryConfig)
       const token = res.data.access_token
 
       if (token) {
         localStorage.setItem('access_token', token)
         message.success('登录成功')
-        router.push('/admin/create')
+        router.push('/admin/dashboard')
       } else {
         message.error('登录失败，请检查用户名和密码')
       }

@@ -3,12 +3,11 @@ import HomeView from '@/views/blog/HomeViewPage.vue'
 import NotFound from '@/views/NotFoundPage.vue'
 import BlogList from '@/views/blog/BlogList.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
-import BlogDetailPage from '@/views/blog/BlogDetailPage.vue'
-import CreatePost from '@/views/admin/CreatePost.vue'
-import UpdatePost from '@/views/admin/UpdatePost.vue'
+// import BlogDetailPage from '@/views/blog/BlogDetailPage.vue'
+import CreatePost from '@/views/post/CreatePost.vue'
+import UpdatePost from '@/views/post/UpdatePost.vue'
 import BlogDetailPageWithSlug from '@/views/blog/BlogDetailPageWithSlug.vue'
 import CreateCategory from '@/views/category/CreateCategory.vue'
-
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +24,17 @@ const router = createRouter({
       component: BlogList,
       meta: { title: 'Blog' },
     },
+    // {
+    //   path: '/post/:id',
+    //   name: 'PostDetail',
+    //   component: BlogDetailPage,
+    // },
+    {
+      path: '/blog/:slug',
+      name: 'PostDetailBySlug',
+      component: BlogDetailPageWithSlug,
+    },
+    // admin 管理路由配置
     {
       path: '/admin',
       name: 'login',
@@ -32,13 +42,12 @@ const router = createRouter({
       meta: { title: 'Admin Login' },
     },
     {
-      path: '/admin/create',
+      path: '/admin/post/create',
       name: 'create',
       component: CreatePost,
       meta: {
         title: 'Create Post',
-        requiresAuth: true
-       },
+      },
     },
     {
       path: '/admin/update/:id',
@@ -46,18 +55,15 @@ const router = createRouter({
       component: UpdatePost,
       meta: {
         title: 'Update Post',
-        requiresAuth: true
-      }
+      },
     },
     {
-      path: '/post/:id',
-      name: 'PostDetail',
-      component: BlogDetailPage,
-    },
-    {
-      path: '/blog/:slug',
-      name: 'PostDetailBySlug',
-      component: BlogDetailPageWithSlug,
+      path: '/admin/category/create',
+      name: 'CreateCategory',
+      component: CreateCategory,
+      meta: {
+        title: 'Create Category',
+      },
     },
     // 404
     {
@@ -66,25 +72,25 @@ const router = createRouter({
       component: NotFound,
       meta: { title: '页面走丢了' },
     },
-    {
-      path: '/createcategory',
-      name: 'CreateCategory',
-      component: CreateCategory,
-    },
   ],
 })
 
 router.beforeEach((to: RouteLocationNormalized, from, next) => {
   const token = localStorage.getItem('access_token')
 
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!token) {
+  const needAuth =
+    to.matched.some((record) => record.meta.requiresAuth) ||
+    (to.path.startsWith('/admin') && to.path !== '/admin')
+
+  if (needAuth) {
+    if (token) {
+      next()
+    } else {
+      // 未登录：跳转至登录页，并携带原始路径用于登录后重定向
       next({
         path: '/admin',
-        query: { redirect: to.fullPath },
+        query: { redirect: to.fullPath }, // fullPath 包含 query/hash，确保精准跳回
       })
-    } else {
-      next()
     }
   } else {
     next()
