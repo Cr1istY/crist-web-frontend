@@ -7,6 +7,7 @@ import BlogDetailPage from '@/views/blog/BlogDetailPage.vue'
 import CreatePost from '@/views/admin/CreatePost.vue'
 import UpdatePost from '@/views/admin/UpdatePost.vue'
 import BlogDetailPageWithSlug from '@/views/blog/BlogDetailPageWithSlug.vue'
+import CreateCategory from '@/views/category/CreateCategory.vue'
 
 
 const router = createRouter({
@@ -64,6 +65,11 @@ const router = createRouter({
       name: 'NotFound',
       component: NotFound,
       meta: { title: '页面走丢了' },
+    },
+    {
+      path: '/createcategory',
+      name: 'CreateCategory',
+      component: CreateCategory,
     },
   ],
 })
