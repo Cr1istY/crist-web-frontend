@@ -1,4 +1,5 @@
 <!-- eslint-disable vue/multi-word-component-names -->
+<!-- this page has been repalced by BlogListWithPinned.vue-->
 <template>
   <div class="blog-layout">
     <!-- 左侧边栏 -->

@@ -1,4 +1,4 @@
-<!-- eslint-disable vue/multi-word-component-names -->
+<!-- this page has been repalced by BlogListFinal.vue-->
 <template>
   <div class="blog-layout">
     <!-- 左侧边栏 -->
@@ -189,8 +189,8 @@ interface BlogPost {
   views: number
   likes: number
   thumbnail?: string
-  is_pinned: boolean    // 置顶状态
-  pinned_order: number  // 置顶顺序
+  is_pinned: boolean // 置顶状态
+  pinned_order: number // 置顶顺序
 }
 
 const allPosts = ref<BlogPost[]>([])
@@ -275,8 +275,8 @@ const loadAllPosts = async () => {
       views: post.views || 0,
       likes: post.likes || 0,
       thumbnail: post.thumbnail,
-      is_pinned: post.is_pinned ?? false,      // 新增字段
-      pinned_order: post.pinned_order ?? 0     // 新增字段
+      is_pinned: post.is_pinned ?? false, // 新增字段
+      pinned_order: post.pinned_order ?? 0, // 新增字段
     }))
 
     allPosts.value = blogPosts
@@ -327,9 +327,7 @@ const sortedPosts = computed(() => {
   }
 
   // 有筛选条件：仅按日期倒序（置顶不生效）
-  return [...allPosts.value].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
+  return [...allPosts.value].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 })
 
 // 置顶标识显示逻辑
@@ -670,7 +668,7 @@ const formatNumber = (num: number): string => {
   left: -6px;
   z-index: 10;
   transform: rotate(-12deg);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .post-item-layout:last-child {
