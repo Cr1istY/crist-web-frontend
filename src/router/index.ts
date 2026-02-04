@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
 import HomeView from '@/views/blog/HomeViewPage.vue'
 import NotFound from '@/views/NotFoundPage.vue'
-import BlogList from '@/views/blog/BlogList.vue'
+// import BlogList from '@/views/blog/BlogList.vue'
+import BlogListWithPinned from '@/views/blog/BlogListFinal.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
 // import BlogDetailPage from '@/views/blog/BlogDetailPage.vue'
-import CreatePost from '@/views/post/CreatePost.vue'
-import UpdatePost from '@/views/post/UpdatePost.vue'
+import CreatePost from '@/views/post/AdminCreatePost.vue'
+import UpdatePost from '@/views/post/AdminUpdatePost.vue'
 import BlogDetailPageWithSlug from '@/views/blog/BlogDetailPageWithSlug.vue'
 import CreateCategory from '@/views/category/CreateCategory.vue'
 
@@ -21,7 +22,7 @@ const router = createRouter({
     {
       path: '/blog',
       name: 'blog',
-      component: BlogList,
+      component: BlogListWithPinned,
       meta: { title: 'Blog' },
     },
     // {

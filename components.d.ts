@@ -11,6 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BlogPostItem: typeof import('./src/components/blog/BlogPostItem.vue')['default']
+    BlogSideabar: typeof import('./src/components/blog/BlogSideabar.vue')['default']
     HeatmapCalendarComponent: typeof import('./src/components/HeatmapCalendarComponent.vue')['default']
     NAlert: typeof import('naive-ui')['NAlert']
     NAvatar: typeof import('naive-ui')['NAvatar']
@@ -48,6 +50,7 @@ declare module 'vue' {
     NText: typeof import('naive-ui')['NText']
     NThing: typeof import('naive-ui')['NThing']
     NTooltip: typeof import('naive-ui')['NTooltip']
+    PaginationControls: typeof import('./src/components/blog/PaginationControls.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
