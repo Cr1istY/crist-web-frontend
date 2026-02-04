@@ -55,7 +55,7 @@
                   round
                   type="success"
                   @click="goToTag(tag)"
-                  style="cursor: pointer; margin-right: 8px;"
+                  style="cursor: pointer; margin-right: 8px"
                 >
                   {{ tag }}
                 </n-tag>
@@ -114,6 +114,24 @@
               >
                 删除
               </n-button>
+              <n-button
+                v-if="update_flag && !isPinned"
+                type="tertiary"
+                size="small"
+                @click="pinPost"
+                style="font-weight: 500"
+              >
+                置顶
+              </n-button>
+              <n-button
+                v-if="update_flag && isPinned"
+                type="tertiary"
+                size="small"
+                @click="unpinPost"
+                style="font-weight: 500"
+              >
+                取消置顶
+              </n-button>
             </n-space>
           </div>
         </n-card>
@@ -132,6 +150,7 @@ import { useMessage, useDialog } from 'naive-ui'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { EyeOutline, HeartOutline } from '@vicons/ionicons5'
+import service from '@/utils/request'
 
 // 类型定义
 interface BlogPost {
@@ -148,6 +167,7 @@ interface BlogPost {
   meta_title?: string
   meta_description?: string
   thumbnail?: string
+  is_pinned?: boolean
 }
 
 const route = useRoute()
@@ -159,6 +179,8 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const post = ref<BlogPost | null>(null)
 const isDark = ref(false)
+
+const isPinned = ref(false)
 
 const update_flag = ref(false)
 const like_flag = ref(false)
@@ -192,7 +214,7 @@ const fetchPost = async (slug: string): Promise<void> => {
     if (!response.ok) throw new Error('文章不存在或已删除')
     const data: BlogPost = await response.json()
     post.value = data
-
+    isPinned.value = data.is_pinned || false
     // 设置 SEO
     document.title = data.meta_title || `${data.title} - foreveryang`
     let metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]')
@@ -274,22 +296,79 @@ const deletePost = async (): Promise<void> => {
     onPositiveClick: async () => {
       try {
         loading.value = true
-        const response = await fetch(`/api/posts/delete/${post.value?.id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        })
-
-        if (!response.ok) {
-          throw new Error('删除失败')
+        if (!post.value) {
+          message.error('文章不存在')
+          return
         }
+        await service.delete(`/posts/delete/${post.value.id}`)
         message.success('文章已删除')
         router.push('/blog')
       } catch (error) {
         const msg = error instanceof Error ? error.message : '删除失败'
         message.error(msg)
+        if (msg.includes('401')) {
+          router.push('/admin')
+        }
+      } finally {
+        loading.value = false
+      }
+    },
+  })
+}
+
+const pinPost = async (): Promise<void> => {
+  if (!post.value?.id) return
+  dialog.warning({
+    title: '置顶文章',
+    content: '确定要置顶这篇文章吗？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        loading.value = true
+        if (!post.value) {
+          message.error('文章不存在')
+          return
+        }
+        await service.put(`/posts/pin/${post.value.id}`)
+        message.success('文章已删除')
+        router.push('/blog')
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : '删除失败'
+        message.error(msg)
+        if (msg.includes('401')) {
+          router.push('/admin')
+        }
+      } finally {
+        loading.value = false
+      }
+    },
+  })
+}
+
+const unpinPost = async (): Promise<void> => {
+  if (!post.value?.id) return
+  dialog.warning({
+    title: '取消置顶文章',
+    content: '确定要取消置顶这篇文章吗？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        loading.value = true
+        if (!post.value) {
+          message.error('文章不存在')
+          return
+        }
+        await service.put(`/posts/unpin/${post.value.id}`)
+        message.success('文章已取消置顶')
+        router.push('/blog')
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : '取消置顶失败'
+        message.error(msg)
+        if (msg.includes('401')) {
+          router.push('/admin')
+        }
       } finally {
         loading.value = false
       }
