@@ -14,9 +14,8 @@
             />
             <div class="intro-text">
               <n-h2 style="margin-bottom: 2px">Crist Yang</n-h2>
-              <n-h3 style="margin-top: 2px">杨小文</n-h3>
               <n-text type="primary">全栈学习中 · 在校学生</n-text>
-              <n-p class="bio"> 后端开发，物联网工程，偶尔前端，顺手设计，持续写作 </n-p>
+              <n-p class="bio">后端开发，物联网工程，偶尔前端，顺手设计，持续写作</n-p>
             </div>
           </n-space>
         </n-card>
