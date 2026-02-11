@@ -56,8 +56,16 @@
       <n-h3 class="sidebar-title">😊 更多信息</n-h3>
       <n-space vertical>
         <n-button text @click="$router.push('/')">🏠 foreveryang</n-button>
-        <n-button text href="https://github.com/Cr1istY/foreveryangDot-frontend" target="_blank">💻 source code</n-button>
-        <n-button text href="https://beian.miit.gov.cn/" target="_blank">渝ICP备2025056615号</n-button>
+        <n-button
+          text
+          tag="a"
+          href="https://github.com/Cr1istY/foreveryangDot-frontend"
+          target="_blank"
+          >💻 source code</n-button
+        >
+        <n-button text tag="a" href="https://beian.miit.gov.cn/" target="_blank"
+          >渝ICP备2025056615号</n-button
+        >
       </n-space>
     </div>
   </aside>
@@ -87,11 +95,11 @@ const emit = defineEmits<{
 // 双向绑定代理
 const modelDate = computed({
   get: () => props.date ?? '',
-  set: (val) => emit('update:date', val || undefined)
+  set: (val) => emit('update:date', val || undefined),
 })
 const modelTag = computed({
   get: () => props.tag ?? '',
-  set: (val) => emit('update:tag', val || undefined)
+  set: (val) => emit('update:tag', val || undefined),
 })
 const localSearch = ref(props.search || '')
 const showSuggestions = ref(false)
@@ -100,24 +108,27 @@ const suggestions = ref<string[]>([])
 // 搜索建议
 const getAllKeywords = () => {
   const set = new Set<string>()
-  props.posts.forEach(p => {
+  props.posts.forEach((p) => {
     set.add(p.title)
-    p.tags.forEach(t => set.add(t))
+    p.tags.forEach((t) => set.add(t))
   })
   return Array.from(set)
 }
 
 const computeSuggestions = (query: string) => {
-  if (!query.trim()) return suggestions.value = []
+  if (!query.trim()) return (suggestions.value = [])
   const lower = query.toLowerCase()
   suggestions.value = getAllKeywords()
-    .filter(kw => kw.toLowerCase().includes(lower))
+    .filter((kw) => kw.toLowerCase().includes(lower))
     .slice(0, 5)
 }
 
 type DebounceFunction<T extends unknown[]> = (...args: T) => void
 
-const debounce = <T extends unknown[]>(fn: DebounceFunction<T>, delay: number): DebounceFunction<T> => {
+const debounce = <T extends unknown[]>(
+  fn: DebounceFunction<T>,
+  delay: number,
+): DebounceFunction<T> => {
   let timer: number | null = null
   return (...args: T) => {
     if (timer) clearTimeout(timer)
@@ -130,7 +141,10 @@ const debouncedSearch = debounce((val: string) => {
   computeSuggestions(val)
 }, 250)
 
-const hideSuggestions = () => setTimeout(() => { showSuggestions.value = false }, 200)
+const hideSuggestions = () =>
+  setTimeout(() => {
+    showSuggestions.value = false
+  }, 200)
 const selectSuggestion = (text: string) => {
   localSearch.value = text
   emit('update:search', text)
@@ -140,7 +154,7 @@ const selectSuggestion = (text: string) => {
 // 标签统计
 const topTags = computed(() => {
   const map = new Map<string, number>()
-  props.posts.forEach(p => p.tags.forEach(t => map.set(t, (map.get(t) || 0) + 1)))
+  props.posts.forEach((p) => p.tags.forEach((t) => map.set(t, (map.get(t) || 0) + 1)))
   return Array.from(map.entries())
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)
@@ -153,18 +167,66 @@ const getTagColor = (tag: string) =>
     : { color: '#f0f9ff', textColor: '#007bff' }
 
 // 监听外部变化
-watch(() => props.search, (val) => { localSearch.value = val || '' })
+watch(
+  () => props.search,
+  (val) => {
+    localSearch.value = val || ''
+  },
+)
 </script>
 
 <style scoped>
-.sidebar { width: 250px; position: fixed; top: 24px; height: calc(100vh - 88px); overflow-y: auto; padding-right: 16px }
-.sidebar-title { font-size: 16px; font-weight: 600; margin: 18px 0 12px; color: #333 }
-.search-box { position: relative; margin: 16px 0 }
-.search-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #d1d5db; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; margin-top: 4px; z-index: 1000 }
-.suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 14px; color: #374151 }
-.suggestion-item:hover { background-color: #f9fafb }
-.tag-cloud, .footer-links { margin-top: 24px }
+.sidebar {
+  width: 250px;
+  position: fixed;
+  top: 24px;
+  height: calc(100vh - 88px);
+  overflow-y: auto;
+  padding-right: 16px;
+}
+.sidebar-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 18px 0 12px;
+  color: #333;
+}
+.search-box {
+  position: relative;
+  margin: 16px 0;
+}
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 4px;
+  z-index: 1000;
+}
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+}
+.suggestion-item:hover {
+  background-color: #f9fafb;
+}
+.tag-cloud,
+.footer-links {
+  margin-top: 24px;
+}
 @media (max-width: 640px) {
-  .sidebar { width: 100%; position: static; height: auto; margin-bottom: 24px }
+  .sidebar {
+    width: 100%;
+    position: static;
+    height: auto;
+    margin-bottom: 24px;
+  }
 }
 </style>
