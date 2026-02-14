@@ -134,9 +134,16 @@ async function submitForm() {
     const response = await service.put(`/posts/update/${post.id}`, post)
     if (response.status === 200) {
       message.success('文章更新成功！')
+      const post_slug: string = response.data.post_slug
+      console.log('post_slug:', post_slug)
+      if (typeof(post_slug) === 'string' && post_slug.length > 0) {
+        router.push(`/blog/${post_slug}`) // 重定向到文章详情页面
+        return
+      }
       router.push('/blog') // 重定向到文章列表页面
     }
   } catch (error: unknown) {
+    router.push('/blog') // 重定向到文章列表页面
     console.error('There was an error submitting your form!', error)
   }
 }
