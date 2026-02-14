@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <aside class="sidebar">
     <n-h3 class="sidebar-title">📝 所有文章</n-h3>
@@ -9,11 +10,16 @@
         placeholder="find the thoughts..."
         clearable
         size="small"
-        @update:value="debouncedSearch"
+        @update:value="onSearchInput"
         @focus="showSuggestions = true"
-        @blur="hideSuggestions"
+        @blur="hideSuggestionsIfNotHovered"
       />
-      <div v-if="showSuggestions && suggestions.length" class="search-suggestions">
+      <div
+        v-if="showSuggestions && suggestions.length"
+        class="search-suggestions"
+        @mouseenter="isMouseOverSuggestions = true"
+        @mouseleave="isMouseOverSuggestions = false"
+      >
         <div
           v-for="(s, i) in suggestions"
           :key="i"
@@ -61,118 +67,184 @@
           tag="a"
           href="https://github.com/Cr1istY/foreveryangDot-frontend"
           target="_blank"
-          >💻 source code</n-button
         >
-        <n-button text tag="a" href="https://beian.miit.gov.cn/" target="_blank"
-          >渝ICP备2025056615号</n-button
-        >
+          💻 source code
+        </n-button>
+        <n-button text tag="a" href="https://beian.miit.gov.cn/" target="_blank">
+          渝ICP备2025056615号
+        </n-button>
       </n-space>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import HeatmapCalendar from '../HeatmapCalendarComponent.vue'
-import type { BlogPost } from '@/types/blog'
+import { ref, computed, watch, nextTick } from 'vue';
+import HeatmapCalendar from '../HeatmapCalendarComponent.vue';
+import type { BlogPost } from '@/types/blog';
 
-const props = defineProps<{
-  posts: BlogPost[]
-  totalPosts: number
-  modelValue?: string // 兼容旧API
-  date?: string
-  tag?: string
-  search?: string
-}>()
+interface Props {
+  posts: BlogPost[];
+  totalPosts: number;
+  modelValue?: string; // 兼容旧API
+  date?: string;
+  tag?: string;
+  search?: string;
+}
 
-const emit = defineEmits<{
-  'update:date': [date?: string]
-  'update:tag': [tag?: string]
-  'update:search': [keyword: string]
-  'clear-filters': []
-}>()
+interface Emits {
+  'update:date': [date?: string];
+  'update:tag': [tag?: string];
+  'update:search': [keyword: string];
+  'clear-filters': [];
+}
+
+const props = withDefaults(defineProps<Props>(), {});
+const emit = defineEmits<Emits>();
 
 // 双向绑定代理
-const modelDate = computed({
+const modelDate = computed<string>({
   get: () => props.date ?? '',
   set: (val) => emit('update:date', val || undefined),
-})
-const modelTag = computed({
+});
+const modelTag = computed<string>({
   get: () => props.tag ?? '',
   set: (val) => emit('update:tag', val || undefined),
-})
-const localSearch = ref(props.search || '')
-const showSuggestions = ref(false)
-const suggestions = ref<string[]>([])
+});
 
-// 搜索建议
-const getAllKeywords = () => {
-  const set = new Set<string>()
-  props.posts.forEach((p) => {
-    set.add(p.title)
-    p.tags.forEach((t) => set.add(t))
-  })
-  return Array.from(set)
-}
+const localSearch = ref<string>(props.search || '');
+const showSuggestions = ref<boolean>(false);
+const isMouseOverSuggestions = ref<boolean>(false);
+const suggestions = ref<string[]>([]);
+const keywordCache = ref<Set<string>>(new Set());
 
-const computeSuggestions = (query: string) => {
-  if (!query.trim()) return (suggestions.value = [])
-  const lower = query.toLowerCase()
-  suggestions.value = getAllKeywords()
-    .filter((kw) => kw.toLowerCase().includes(lower))
-    .slice(0, 5)
-}
+// --- 搜索建议相关逻辑 ---
 
-type DebounceFunction<T extends unknown[]> = (...args: T) => void
+// 从 posts 中提取所有唯一的标题作为建议关键词
+const updateKeywordCache = (): void => {
+  const newCache = new Set<string>();
+  props.posts.forEach((post) => {
+    if (post.title) {
+      newCache.add(post.title);
+    }
+  });
+  keywordCache.value = newCache;
+};
 
+// 计算搜索建议列表
+const computeSuggestions = (query: string): void => {
+  if (!query.trim()) {
+    suggestions.value = [];
+    return;
+  }
+  const lowerQuery = query.toLowerCase();
+  suggestions.value = [...keywordCache.value]
+    .filter((kw) => kw.toLowerCase().includes(lowerQuery))
+    .slice(0, 5);
+};
+
+// 定义防抖函数类型
+type DebounceFunction<T extends unknown[]> = (...args: T) => void;
+
+// 实现防抖函数
 const debounce = <T extends unknown[]>(
   fn: DebounceFunction<T>,
   delay: number,
 ): DebounceFunction<T> => {
-  let timer: number | null = null
+  let timer: number | null = null;
   return (...args: T) => {
-    if (timer) clearTimeout(timer)
-    timer = setTimeout(() => fn(...args), delay)
-  }
-}
+    if (timer) clearTimeout(timer);
+    timer = window.setTimeout(() => fn(...args), delay) as unknown as number; // 类型转换
+  };
+};
 
-const debouncedSearch = debounce((val: string) => {
-  emit('update:search', val)
-  computeSuggestions(val)
-}, 250)
+// 防抖版本的建议更新函数
+const updateSuggestionsDebounced = debounce((query: string) => {
+  computeSuggestions(query);
+}, 250);
 
-const hideSuggestions = () =>
-  setTimeout(() => {
-    showSuggestions.value = false
-  }, 200)
-const selectSuggestion = (text: string) => {
-  localSearch.value = text
-  emit('update:search', text)
-  showSuggestions.value = false
-}
+// 输入框值更新时的处理函数
+const onSearchInput = (val: string): void => {
+  // 立即发出搜索事件，让父组件过滤数据
+  emit('update:search', val);
+  // 防抖更新本地建议列表
+  updateSuggestionsDebounced(val);
+};
 
-// 标签统计
+// 处理点击建议项
+const selectSuggestion = (text: string): void => {
+  localSearch.value = text;
+  // 发出搜索事件
+  emit('update:search', text);
+  // 隐藏建议列表
+  showSuggestions.value = false;
+  // 清除鼠标悬停状态
+  isMouseOverSuggestions.value = false;
+};
+
+// 处理输入框失去焦点时的逻辑
+const hideSuggestionsIfNotHovered = (): void => {
+  // 使用 nextTick 确保 click 事件处理完毕
+  nextTick(() => {
+    if (!isMouseOverSuggestions.value) {
+      showSuggestions.value = false;
+    }
+  });
+};
+
+// --- 标签云相关逻辑 ---
+
+// 计算热门标签
 const topTags = computed(() => {
-  const map = new Map<string, number>()
-  props.posts.forEach((p) => p.tags.forEach((t) => map.set(t, (map.get(t) || 0) + 1)))
+  const map = new Map<string, number>();
+  props.posts.forEach((p) => {
+    p.tags.forEach((t) => {
+      const currentCount = map.get(t) || 0;
+      map.set(t, currentCount + 1);
+    });
+  });
   return Array.from(map.entries())
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 20)
-})
+    .slice(0, 20);
+});
 
-const getTagColor = (tag: string) =>
-  modelTag.value === tag
+// 获取标签颜色
+const getTagColor = (tag: string) => {
+  return modelTag.value === tag
     ? { color: '#e6f7ff', textColor: '#1890ff' }
-    : { color: '#f0f9ff', textColor: '#007bff' }
+    : { color: '#f0f9ff', textColor: '#007bff' };
+};
 
-// 监听外部变化
+// --- 监听器 ---
+
+// 监听 props.posts 的变化，更新关键词缓存和建议列表
+watch(
+  () => props.posts,
+  () => {
+    updateKeywordCache();
+    // 如果当前有搜索词，重新计算建议
+    if (localSearch.value) {
+      computeSuggestions(localSearch.value);
+    } else {
+      // 如果没有搜索词，清空建议
+      suggestions.value = [];
+    }
+  },
+  { immediate: true } // 组件挂载时立即执行一次，初始化缓存
+);
+
+// 监听外部 search prop 的变化，同步到 localSearch
 watch(
   () => props.search,
-  (val) => {
-    localSearch.value = val || ''
-  },
-)
+  (newVal) => {
+    localSearch.value = newVal || '';
+    // 如果外部清空了搜索，也应清空建议
+    if (!newVal) {
+      suggestions.value = [];
+    }
+  }
+);
 </script>
 
 <style scoped>

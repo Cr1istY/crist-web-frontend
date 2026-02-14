@@ -1,28 +1,27 @@
-import { computed } from 'vue'
+import { computed, type Ref } from 'vue'
 import type { BlogPost } from '@/types/blog'
-import type { Ref } from 'vue'
-import { useBlogSearch } from './useBlogSearch'
+
+// 定义传入 filters 的接口，增加 searchFunction
+interface Filters {
+  selectedDate: Ref<string | undefined>
+  selectedTag: Ref<string | undefined>
+  searchKeyword: Ref<string>
+  invertedIndex: Ref<Record<string, number[]>>
+  searchFunction: (query: string) => number[]
+}
 
 export function usePostFiltering(
   allPosts: Ref<BlogPost[]>,
-  filters: {
-    selectedDate: Ref<string | undefined>
-    selectedTag: Ref<string | undefined>
-    searchKeyword: Ref<string>
-    invertedIndex: Ref<Record<string, number[]>>
-  },
+  filters: Filters,
 ) {
-  const { selectedDate, selectedTag, searchKeyword} = filters
-
-  // 暴露搜索函数（供外部调用）
-  const { search } = useBlogSearch()
+  const { selectedDate, selectedTag, searchKeyword, searchFunction /*, invertedIndex */ } = filters
 
   const filteredPosts = computed(() => {
     let candidates = [...allPosts.value]
 
     // 搜索筛选
     if (searchKeyword.value.trim()) {
-      const ids = search(searchKeyword.value)
+      const ids = searchFunction(searchKeyword.value)
       const idSet = new Set(ids)
       candidates = candidates.filter((post) => idSet.has(post.id))
     }

@@ -56,12 +56,13 @@ const searchKeyword = ref('')
 useTagRouting(selectedTag)
 
 // 搜索索引
-const { invertedIndex, buildIndex } = useBlogSearch()
+const { invertedIndex, buildIndex, search } = useBlogSearch()
 const { filteredPosts } = usePostFiltering(allPosts, {
   selectedDate,
   selectedTag,
   searchKeyword,
   invertedIndex,
+  searchFunction: search,
 })
 
 // 置顶排序逻辑
