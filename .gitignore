@@ -43,3 +43,6 @@ __screenshots__/
 .vscode
 public/avator.jpg
 .env
+
+# 外部资源
+public/external

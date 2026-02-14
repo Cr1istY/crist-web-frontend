@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <n-layout style="padding: 20px">
     <div class="form-container">
