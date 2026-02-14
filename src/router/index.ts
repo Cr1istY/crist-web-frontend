@@ -9,6 +9,8 @@ import CreatePost from '@/views/post/AdminCreatePost.vue'
 import UpdatePost from '@/views/post/AdminUpdatePost.vue'
 import BlogDetailPageWithSlug from '@/views/blog/BlogDetailPageWithSlug.vue'
 import CreateCategory from '@/views/category/CreateCategory.vue'
+import AdminIndex from '@/views/admin/AdminIndex.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -65,6 +67,12 @@ const router = createRouter({
       meta: {
         title: 'Create Category',
       },
+    },
+    {
+      path: '/admin/dashboard',
+      name: 'AdminIndex',
+      component: AdminIndex,
+      meta: { title: 'Admin Index' },
     },
     // 404
     {
