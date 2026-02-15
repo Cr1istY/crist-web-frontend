@@ -1,7 +1,7 @@
 <template>
   <n-layout>
-    <n-layout-header style="padding: 20px; background-color: #f8f8f9;">
-      <div style="font-size: 24px; font-weight: bold;">管理员面板</div>
+    <n-layout-header style="padding: 20px; background-color: #f8f8f9">
+      <div style="font-size: 24px; font-weight: bold">管理员面板</div>
     </n-layout-header>
     <n-layout-content content-style="padding: 20px;">
       <n-space vertical>
@@ -13,19 +13,17 @@
         </n-card>
       </n-space>
     </n-layout-content>
+    <!-- TODO 回到首页 -->
   </n-layout>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-import { NLayout, NLayoutHeader, NLayoutContent, NSpace, NCard, NButton } from 'naive-ui';
+import { computed } from 'vue'
+import { NLayout, NLayoutHeader, NLayoutContent, NSpace, NCard, NButton } from 'naive-ui'
 
 // 计算属性用于动态生成链接
-const createUrl = computed(() => `/admin/post/create`);
-const categoryUrl = computed(() => `/admin/category/create`);
-
+const createUrl = computed(() => `/admin/post/create`)
+const categoryUrl = computed(() => `/admin/category/create`)
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

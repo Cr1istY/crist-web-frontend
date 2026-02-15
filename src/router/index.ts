@@ -1,16 +1,14 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
-import HomeView from '@/views/blog/HomeViewPage.vue'
+import service from '@/utils/request'
+import HomeView from '@/views/blog/HomePage.vue'
 import NotFound from '@/views/NotFoundPage.vue'
-// import BlogList from '@/views/blog/BlogList.vue'
 import BlogListWithPinned from '@/views/blog/BlogListFinal.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
-// import BlogDetailPage from '@/views/blog/BlogDetailPage.vue'
 import CreatePost from '@/views/post/AdminCreatePost.vue'
 import UpdatePost from '@/views/post/AdminUpdatePost.vue'
 import BlogDetailPageWithSlug from '@/views/blog/BlogDetailPageWithSlug.vue'
 import CreateCategory from '@/views/category/CreateCategory.vue'
-import AdminIndex from '@/views/admin/AdminIndex.vue'
-
+import AdminIndex from '@/views/admin/AdminIndexPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -84,7 +82,7 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to: RouteLocationNormalized, from, next) => {
+router.beforeEach(async (to: RouteLocationNormalized, from, next) => {
   const token = localStorage.getItem('access_token')
 
   const needAuth =
@@ -93,6 +91,17 @@ router.beforeEach((to: RouteLocationNormalized, from, next) => {
 
   if (needAuth) {
     if (token) {
+      if (from.path === '/admin') {
+        next()
+        return
+      }
+      // 先刷新token
+      const newToken = await service.post('/auth/refresh')
+      if (newToken) {
+        localStorage.setItem('access_token', newToken.data.access_token)
+        console.log('刷新token成功')
+      }
+      // 刷新token成功后，再进行路由跳转
       next()
     } else {
       // 未登录：跳转至登录页，并携带原始路径用于登录后重定向

@@ -104,7 +104,7 @@ service.interceptors.response.use(
 
         return service(originalRequest)
       } catch (refreshError) {
-        console.log('440011') // 确保这行代码能执行
+        console.log('refresh 401') // 确保这行代码能执行
 
         // 清理认证信息
         localStorage.removeItem('access_token')
