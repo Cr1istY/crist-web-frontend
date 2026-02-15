@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <!-- this page has been repalced by BlogListFinal.vue-->
 <template>
   <div class="blog-layout">
