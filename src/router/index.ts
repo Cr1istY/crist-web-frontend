@@ -9,6 +9,8 @@ import UpdatePost from '@/views/post/AdminUpdatePost.vue'
 import BlogDetailPageWithSlug from '@/views/blog/BlogDetailPageWithSlug.vue'
 import CreateCategory from '@/views/category/CreateCategory.vue'
 import AdminIndex from '@/views/admin/AdminIndexPage.vue'
+import TweetIndex from '@/views/tweet/TweetIndexPage.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,6 +26,12 @@ const router = createRouter({
       name: 'blog',
       component: BlogListWithPinned,
       meta: { title: 'Blog' },
+    },
+    {
+      path: '/thread',
+      name: 'thread',
+      component: TweetIndex,
+      meta: { title: 'Thread' },
     },
     // {
     //   path: '/post/:id',

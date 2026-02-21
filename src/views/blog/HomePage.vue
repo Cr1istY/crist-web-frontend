@@ -74,7 +74,12 @@
             <!-- 右侧（仅桌面）：关于 + 技术栈 + 社交 -->
             <n-grid-item class="right-content">
               <!-- 关于我 -->
-              <n-card title="👨‍💻 关于我" :bordered="false" size="medium">
+              <n-card :bordered="false" size="medium">
+                <template #header>
+                  <n-button text tag="a" @click="$router.push('/thread')" class="featured-title">
+                    👨‍💻 About Me
+                  </n-button>
+                </template>
                 <n-p>- 👨‍🎓 IoT Engineering student at CQUPT.</n-p>
                 <n-p>- 🌍 Who loves open-source and make an impact.</n-p>
                 <n-p>- 🛠️ Building AIoT systems with Java, Go, and Python.</n-p>
