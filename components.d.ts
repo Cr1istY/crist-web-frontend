@@ -15,6 +15,7 @@ declare module 'vue' {
     BlogPostItem: typeof import('./src/components/blog/BlogPostItem.vue')['default']
     BlogSideabar: typeof import('./src/components/blog/BlogSideabar.vue')['default']
     Button: typeof import('primevue/button')['default']
+    FileUpload: typeof import('primevue/fileupload')['default']
     HeatmapCalendarComponent: typeof import('./src/components/HeatmapCalendarComponent.vue')['default']
     NAlert: typeof import('naive-ui')['NAlert']
     NAvatar: typeof import('naive-ui')['NAvatar']

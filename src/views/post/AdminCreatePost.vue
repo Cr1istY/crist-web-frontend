@@ -80,8 +80,7 @@ const statusOptions = [
 async function submitForm() {
   try {
     // 如果 category_id 是 null，可以传 null 或忽略（根据后端要求）
-    const response = await service.post('/posts/create', post,
-  )
+    const response = await service.post('/posts/create', post)
     if (response.status === 200) {
       router.push('/blog') // 重定向到文章列表页面
     } else {

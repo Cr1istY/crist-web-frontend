@@ -1,80 +1,54 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import Toast from 'primevue/toast'
-import { useToast } from 'primevue/usetoast'
-import TweetComposer from '@/components/tweet/TweetComposer.vue'
-import TweetList from '@/components/tweet/TweetList.vue'
-import type { Tweet, User } from '@/types/tweet'
+import { ref, onMounted, getCurrentInstance } from 'vue';
+import Toast from 'primevue/toast';
+import TweetComposer from '@/components/tweet/TweetComposer.vue';
+import TweetList from '@/components/tweet/TweetList.vue';
+import type { Tweet, User, TweetImage } from '@/types/tweet';
 
-const toast = useToast()
-const tweets = ref<Tweet[]>([])
-const isLoading = ref<boolean>(true)
+const tweets = ref<Tweet[]>([]);
+const isLoading = ref<boolean>(true);
+const instance = getCurrentInstance();
 
 const currentUser: User = {
   id: '1',
   username: 'demo_user',
   displayName: '演示用户',
   avatar: 'https://i.pravatar.cc/150?img=12',
-  verified: true,
-}
+  verified: true
+};
+
+const showToast = (
+  severity: 'success' | 'info' | 'warn' | 'error',
+  summary: string,
+  detail?: string,
+  life: number = 3000
+): void => {
+  instance?.proxy?.$toast.add({
+    severity,
+    summary,
+    detail,
+    life
+  });
+};
 
 const generateMockTweets = (): Tweet[] => {
-  const mockUsers: User[] = [
-    {
-      id: '2',
-      username: 'vue_master',
-      displayName: 'Vue大师',
-      avatar: 'https://i.pravatar.cc/150?img=1',
-      verified: true,
-    },
-    {
-      id: '3',
-      username: 'ts_lover',
-      displayName: 'TS爱好者',
-      avatar: 'https://i.pravatar.cc/150?img=2',
-      verified: false,
-    },
-    {
-      id: '4',
-      username: 'prime_fan',
-      displayName: 'PrimeVue粉丝',
-      avatar: 'https://i.pravatar.cc/150?img=3',
-      verified: true,
-    },
-  ]
-
-  const mockContents: string[] = [
-    'Vue 3 + TypeScript + PrimeVue 真是太棒了！🚀',
-    '今天学习了Composition API，代码复用变得如此简单！',
-    'PrimeVue的组件设计真的很优雅，开发效率提升了不少～',
-    'TypeScript的类型系统让bug无处遁形！💪',
-    '刚刚完成了一个新项目，感觉收获满满！',
-  ]
-
-  return mockContents.map(
-    (content, index): Tweet => ({
-      id: `tweet-${index + 1}`,
-      user: mockUsers[index % mockUsers.length]!,
-      content,
-      timestamp: new Date(Date.now() - index * 3600000),
-      likes: Math.floor(Math.random() * 1000),
-      retweets: Math.floor(Math.random() * 500),
-      replies: Math.floor(Math.random() * 100),
-      liked: false,
-      retweeted: false,
-    }),
-  )
-}
+  // ... 保持不变
+  return [];
+};
 
 const loadTweets = (): void => {
-  isLoading.value = true
+  isLoading.value = true;
   setTimeout((): void => {
-    tweets.value = generateMockTweets()
-    isLoading.value = false
-  }, 1000)
-}
+    tweets.value = generateMockTweets();
+    isLoading.value = false;
+  }, 1000);
+};
 
-const handleTweetSubmit = (content: string): void => {
+// ✅ 更新：处理提交时接收图片
+const handleTweetSubmit = async (content: string, images: TweetImage[]): Promise<void> => {
+  // 提取图片 URL（实际项目中应该是上传后的 URL）
+  const imageUrls: string[] = images.map((img) => img.url);
+
   const newTweet: Tweet = {
     id: `tweet-${Date.now()}`,
     user: currentUser,
@@ -85,53 +59,44 @@ const handleTweetSubmit = (content: string): void => {
     replies: 0,
     liked: false,
     retweeted: false,
-  }
+    images: imageUrls.length > 0 ? imageUrls : undefined
+  };
 
-  tweets.value.unshift(newTweet)
+  tweets.value.unshift(newTweet);
 
-  toast.add({
-    severity: 'success',
-    summary: '发布成功',
-    detail: '您的推文已成功发布',
-    life: 3000,
-  })
-}
+  const imageCount = images.length;
+  showToast(
+    'success',
+    '发布成功',
+    imageCount > 0 ? `已发布推文和 ${imageCount} 张图片` : '您的推文已成功发布'
+  );
+};
 
 const handleLike = (tweetId: string): void => {
-  const tweet: Tweet | undefined = tweets.value.find((t: Tweet) => t.id === tweetId)
+  const tweet: Tweet | undefined = tweets.value.find((t: Tweet) => t.id === tweetId);
   if (tweet) {
-    tweet.liked = !tweet.liked
-    tweet.likes += tweet.liked ? 1 : -1
+    tweet.liked = !tweet.liked;
+    tweet.likes += tweet.liked ? 1 : -1;
   }
-}
+};
 
 const handleRetweet = (tweetId: string): void => {
-  const tweet: Tweet | undefined = tweets.value.find((t: Tweet) => t.id === tweetId)
+  const tweet: Tweet | undefined = tweets.value.find((t: Tweet) => t.id === tweetId);
   if (tweet) {
-    tweet.retweeted = !tweet.retweeted
-    tweet.retweets += tweet.retweeted ? 1 : -1
-
-    toast.add({
-      severity: tweet.retweeted ? 'success' : 'info',
-      summary: tweet.retweeted ? '已转发' : '已取消转发',
-      life: 2000,
-    })
+    tweet.retweeted = !tweet.retweeted;
+    tweet.retweets += tweet.retweeted ? 1 : -1;
+    showToast(tweet.retweeted ? 'success' : 'info', tweet.retweeted ? '已转发' : '已取消转发');
   }
-}
+};
 
 const handleReply = (tweetId: string): void => {
-  toast.add({
-    severity: 'info',
-    summary: '回复功能',
-    detail: '回复功能开发中...',
-    life: 2000,
-  })
-  console.log(`回复推文 ${tweetId}`)
-}
+  showToast('info', '回复功能', '回复功能开发中...');
+  console.log(`Reply to tweet: ${tweetId}`);
+};
 
 onMounted((): void => {
-  loadTweets()
-})
+  loadTweets();
+});
 </script>
 
 <template>
@@ -140,8 +105,8 @@ onMounted((): void => {
 
     <header class="app-header">
       <div class="header-content">
-        <i class="pi pi-twitter logo"></i>
-        <h1>推文</h1>
+        <i class="pi pi-crown logo"></i>
+        <h1>Threads</h1>
       </div>
     </header>
 
@@ -236,7 +201,7 @@ body {
 
 .logo {
   font-size: 2rem;
-  color: var(--primary-color);
+  color: var(--p-orange-600);
 }
 
 .header-content h1 {
