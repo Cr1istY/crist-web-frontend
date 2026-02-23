@@ -1,102 +1,114 @@
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance } from 'vue';
-import Toast from 'primevue/toast';
-import TweetComposer from '@/components/tweet/TweetComposer.vue';
-import TweetList from '@/components/tweet/TweetList.vue';
-import type { Tweet, User, TweetImage } from '@/types/tweet';
+import { ref, onMounted, getCurrentInstance } from 'vue'
+import Toast from 'primevue/toast'
+import TweetComposer from '@/components/tweet/TweetComposer.vue'
+import TweetList from '@/components/tweet/TweetList.vue'
+import service from '@/utils/request'
+import type { Tweet, User, TweetImage } from '@/types/tweet'
 
-const tweets = ref<Tweet[]>([]);
-const isLoading = ref<boolean>(true);
-const instance = getCurrentInstance();
+const tweets = ref<Tweet[]>([])
+const isLoading = ref<boolean>(true)
+const instance = getCurrentInstance()
+const isLogin = ref<boolean>(false)
 
-const currentUser: User = {
+const currentUser = ref<User>({
   id: '1',
   username: 'demo_user',
   displayName: '演示用户',
   avatar: 'https://i.pravatar.cc/150?img=12',
-  verified: true
-};
+  verified: true,
+})
 
 const showToast = (
   severity: 'success' | 'info' | 'warn' | 'error',
   summary: string,
   detail?: string,
-  life: number = 3000
+  life: number = 3000,
 ): void => {
   instance?.proxy?.$toast.add({
     severity,
     summary,
     detail,
-    life
-  });
-};
-
-const generateMockTweets = (): Tweet[] => {
-  // ... 保持不变
-  return [];
-};
+    life,
+  })
+}
 
 const loadTweets = (): void => {
-  isLoading.value = true;
-  setTimeout((): void => {
-    tweets.value = generateMockTweets();
-    isLoading.value = false;
-  }, 1000);
-};
+  isLoading.value = true
+  setTimeout(async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/tweet/getall')
+      if (!res.ok) throw new Error('API error')
+      const apiTweets: Tweet[] = await res.json()
+      tweets.value = apiTweets.map((tweet) => ({
+        id: tweet.id,
+        user: tweet.user,
+        content: tweet.content,
+        timestamp: tweet.timestamp,
+        likes: tweet.likes,
+        images: tweet.images,
+      }))
+      console.log(tweets.value)
+      isLoading.value = false
+    } catch (error) {
+      console.log('error: ', error)
+    }
+  }, 1000)
+}
 
-// ✅ 更新：处理提交时接收图片
+const getCurrentUser = async (): Promise<User | null> => {
+  try {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      return null
+    }
+    isLogin.value = true
+    const res = await service.get('/tweet/getCurrentUser')
+    console.log('res: ', res.data)
+    return res.data as User
+  } catch (error) {
+    console.log('error: ', error)
+    return null
+  }
+}
+
 const handleTweetSubmit = async (content: string, images: TweetImage[]): Promise<void> => {
   // 提取图片 URL（实际项目中应该是上传后的 URL）
-  const imageUrls: string[] = images.map((img) => img.url);
+  const imageUrls: string[] = images.map((img) => img.url)
 
   const newTweet: Tweet = {
     id: `tweet-${Date.now()}`,
-    user: currentUser,
+    user: currentUser.value,
     content,
     timestamp: new Date(),
     likes: 0,
-    retweets: 0,
-    replies: 0,
-    liked: false,
-    retweeted: false,
-    images: imageUrls.length > 0 ? imageUrls : undefined
-  };
+    images: imageUrls.length > 0 ? imageUrls : undefined,
+  }
 
-  tweets.value.unshift(newTweet);
+  tweets.value.unshift(newTweet)
 
-  const imageCount = images.length;
+  const imageCount = images.length
   showToast(
     'success',
     '发布成功',
-    imageCount > 0 ? `已发布推文和 ${imageCount} 张图片` : '您的推文已成功发布'
-  );
-};
+    imageCount > 0 ? `已发布推文和 ${imageCount} 张图片` : '您的推文已成功发布',
+  )
+}
 
 const handleLike = (tweetId: string): void => {
-  const tweet: Tweet | undefined = tweets.value.find((t: Tweet) => t.id === tweetId);
+  const tweet: Tweet | undefined = tweets.value.find((t: Tweet) => t.id === tweetId)
   if (tweet) {
-    tweet.liked = !tweet.liked;
-    tweet.likes += tweet.liked ? 1 : -1;
+    tweet.likes += 1
   }
-};
+}
 
-const handleRetweet = (tweetId: string): void => {
-  const tweet: Tweet | undefined = tweets.value.find((t: Tweet) => t.id === tweetId);
-  if (tweet) {
-    tweet.retweeted = !tweet.retweeted;
-    tweet.retweets += tweet.retweeted ? 1 : -1;
-    showToast(tweet.retweeted ? 'success' : 'info', tweet.retweeted ? '已转发' : '已取消转发');
+onMounted(async (): Promise<void> => {
+  loadTweets()
+  const user = await getCurrentUser()
+  if (user != null) {
+    currentUser.value = user
   }
-};
-
-const handleReply = (tweetId: string): void => {
-  showToast('info', '回复功能', '回复功能开发中...');
-  console.log(`Reply to tweet: ${tweetId}`);
-};
-
-onMounted((): void => {
-  loadTweets();
-});
+})
 </script>
 
 <template>
@@ -112,15 +124,9 @@ onMounted((): void => {
 
     <main class="main-content">
       <div class="feed-container">
-        <TweetComposer @submit="handleTweetSubmit" />
+        <TweetComposer v-if="isLogin" :current-user="currentUser" @submit="handleTweetSubmit" />
 
-        <TweetList
-          :tweets="tweets"
-          :loading="isLoading"
-          @like="handleLike"
-          @retweet="handleRetweet"
-          @reply="handleReply"
-        />
+        <TweetList :tweets="tweets" :loading="isLoading" @like="handleLike" />
       </div>
 
       <aside class="sidebar">

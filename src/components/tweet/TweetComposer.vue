@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<TweetComposerProps>(), {
   maxImages: 4,
   allowedImageTypes: () => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   maxImageSize: 5,
+  currentUser: undefined,
 })
 
 const emit = defineEmits<{
@@ -188,6 +189,7 @@ onBeforeUnmount((): void => {
     URL.revokeObjectURL(img.previewUrl)
   })
 })
+
 </script>
 
 <template>
@@ -203,7 +205,7 @@ onBeforeUnmount((): void => {
 
     <div class="composer-header">
       <Avatar
-        image="https://i.pravatar.cc/150?img=12"
+        :image="currentUser?.avatar"
         size="large"
         shape="circle"
         aria-label="用户头像"

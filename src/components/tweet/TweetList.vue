@@ -1,20 +1,13 @@
 <script setup lang="ts">
 import Card from 'primevue/card';
 import Avatar from 'primevue/avatar';
-import Button from 'primevue/button';
 import Divider from 'primevue/divider';
 import type { TweetListProps } from '@/types/tweet';
 
-const props = withDefaults(defineProps<TweetListProps>(), {
+withDefaults(defineProps<TweetListProps>(), {
   loading: false,
   tweets: () => []
 });
-
-const emit = defineEmits<{
-  like: [tweetId: string];
-  retweet: [tweetId: string];
-  reply: [tweetId: string];
-}>();
 
 const formatTimestamp = (date: Date): string => {
   const now: Date = new Date();
@@ -34,27 +27,7 @@ const formatTimestamp = (date: Date): string => {
   });
 };
 
-const formatNumber = (num: number): string => {
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(1)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`;
-  }
-  return num.toString();
-};
 
-const handleLike = (tweetId: string): void => {
-  emit('like', tweetId);
-};
-
-const handleRetweet = (tweetId: string): void => {
-  emit('retweet', tweetId);
-};
-
-const handleReply = (tweetId: string): void => {
-  emit('reply', tweetId);
-};
 </script>
 
 <template>
@@ -114,36 +87,6 @@ const handleReply = (tweetId: string): void => {
 
         <Divider />
 
-        <div class="tweet-actions">
-          <Button
-            icon="pi pi-comment"
-            class="p-button-text p-button-secondary"
-            :label="formatNumber(tweet.replies)"
-            @click="handleReply(tweet.id)"
-            aria-label="回复"
-          />
-          <Button
-            icon="pi pi-refresh"
-            class="p-button-text"
-            :class="{ 'p-button-success': tweet.retweeted }"
-            :label="formatNumber(tweet.retweets)"
-            @click="handleRetweet(tweet.id)"
-            aria-label="转发"
-          />
-          <Button
-            icon="pi pi-heart"
-            class="p-button-text"
-            :class="{ 'p-button-danger': tweet.liked }"
-            :label="formatNumber(tweet.likes)"
-            @click="handleLike(tweet.id)"
-            aria-label="点赞"
-          />
-          <Button
-            icon="pi pi-share-alt"
-            class="p-button-text p-button-secondary"
-            aria-label="分享"
-          />
-        </div>
       </template>
     </Card>
   </div>

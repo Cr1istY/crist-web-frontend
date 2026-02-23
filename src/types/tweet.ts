@@ -12,20 +12,7 @@ export interface Tweet {
   content: string
   timestamp: Date
   likes: number
-  retweets: number
-  replies: number
-  liked: boolean
-  retweeted: boolean
   images?: string[]
-}
-
-export interface TweetComposerProps {
-  placeholder?: string
-  submitLabel?: string
-  maxLength?: number
-  maxImages?: number
-  allowedImageTypes?: string[]
-  maxImageSize?: number // MB
 }
 
 export interface TweetListProps {
@@ -56,4 +43,14 @@ export interface UploadedImage {
   progress: number
   error?: string
   uploadedUrl?: string // 上传成功后的服务器 URL
+}
+
+export interface TweetComposerProps {
+  placeholder?: string
+  submitLabel?: string
+  maxLength?: number
+  maxImages?: number
+  allowedImageTypes?: string[]
+  maxImageSize?: number
+  currentUser?: User
 }
