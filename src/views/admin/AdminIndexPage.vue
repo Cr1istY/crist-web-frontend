@@ -25,6 +25,9 @@
 </template>
 
 <script lang="ts" setup>
+defineOptions({
+  name: 'AdminIndexPage'
+})
 import { computed } from 'vue'
 import { NLayout, NLayoutHeader, NLayoutContent, NSpace, NCard, NButton } from 'naive-ui'
 

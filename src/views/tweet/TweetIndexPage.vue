@@ -1,4 +1,7 @@
 <script setup lang="ts">
+defineOptions({
+  name: 'TweetIndexPage'
+})
 import { ref, onMounted, getCurrentInstance } from 'vue'
 import Toast from 'primevue/toast'
 import TweetComposer from '@/components/tweet/TweetComposer.vue'
@@ -11,13 +14,7 @@ const isLoading = ref<boolean>(true)
 const instance = getCurrentInstance()
 const isLogin = ref<boolean>(false)
 
-const currentUser = ref<User>({
-  id: '1',
-  username: 'demo_user',
-  displayName: '演示用户',
-  avatar: 'https://i.pravatar.cc/150?img=12',
-  verified: true,
-})
+const currentUser = ref<User | null>(null)
 
 const showToast = (
   severity: 'success' | 'info' | 'warn' | 'error',
@@ -73,6 +70,14 @@ const getCurrentUser = async (): Promise<User | null> => {
 }
 
 const handleTweetSubmit = async (content: string, images: TweetImage[]): Promise<void> => {
+  if (!isLogin.value) {
+    showToast('error', '错误', '请先登录')
+    return
+  }
+  if (!currentUser.value) {
+    showToast('error', '错误', '请先登录')
+    return
+  }
   // 提取图片 URL（实际项目中应该是上传后的 URL）
   const imageUrls: string[] = images.map((img) => img.url)
 
@@ -124,7 +129,7 @@ onMounted(async (): Promise<void> => {
 
     <main class="main-content">
       <div class="feed-container">
-        <TweetComposer v-if="isLogin" :current-user="currentUser" @submit="handleTweetSubmit" />
+        <TweetComposer v-if="isLogin && currentUser" :current-user="currentUser" @submit="handleTweetSubmit" />
 
         <TweetList :tweets="tweets" :loading="isLoading" @like="handleLike" />
       </div>

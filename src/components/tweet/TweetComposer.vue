@@ -1,4 +1,7 @@
 <script setup lang="ts">
+defineOptions({
+  name: 'TweetComposer'
+})
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import Avatar from 'primevue/avatar'
 import Textarea from 'primevue/textarea'

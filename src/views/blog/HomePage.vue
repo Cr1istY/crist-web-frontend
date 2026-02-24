@@ -166,6 +166,9 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: 'HomePage'
+})
 import { LogoVue, Code, HardwareChip, LogoDocker } from '@vicons/ionicons5'
 
 import { LogoPython } from '@vicons/carbon'
