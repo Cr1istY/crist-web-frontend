@@ -79,14 +79,13 @@ const handleDelete = (id: string | number) => {
         <p class="tweet-content">{{ tweet.content }}</p>
 
         <div v-if="tweet.images && tweet.images.length > 0" class="tweet-images">
-
           <n-image
             v-for="(image, index) in tweet.images"
             lazy
             :src="image"
             :key="index"
             class="tweet-image"
-            ></n-image>
+          ></n-image>
         </div>
 
         <Divider />
@@ -209,6 +208,7 @@ const handleDelete = (id: string | number) => {
   width: 100%;
   height: auto;
   max-height: 50vh;
+  max-width: 60vw;
 }
 
 .tweet-actions {

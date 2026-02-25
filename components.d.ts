@@ -11,13 +11,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    Avatar: typeof import('primevue/avatar')['default']
     BlogPostItem: typeof import('./src/components/blog/BlogPostItem.vue')['default']
     BlogSideabar: typeof import('./src/components/blog/BlogSideabar.vue')['default']
-    Button: typeof import('primevue/button')['default']
-    FileUpload: typeof import('primevue/fileupload')['default']
     HeatmapCalendarComponent: typeof import('./src/components/HeatmapCalendarComponent.vue')['default']
-    Image: typeof import('primevue/image')['default']
     NAlert: typeof import('naive-ui')['NAlert']
     NAvatar: typeof import('naive-ui')['NAvatar']
     NAvatarGroup: typeof import('naive-ui')['NAvatarGroup']
@@ -26,7 +22,6 @@ declare module 'vue' {
     NCard: typeof import('naive-ui')['NCard']
     NConfigProvider: typeof import('naive-ui')['NConfigProvider']
     NDialogProvider: typeof import('naive-ui')['NDialogProvider']
-    NDivider: typeof import('naive-ui')['NDivider']
     NDropdown: typeof import('naive-ui')['NDropdown']
     NDynamicTags: typeof import('naive-ui')['NDynamicTags']
     NEmpty: typeof import('naive-ui')['NEmpty']
@@ -41,8 +36,6 @@ declare module 'vue' {
     NImage: typeof import('naive-ui')['NImage']
     NInput: typeof import('naive-ui')['NInput']
     NLayout: typeof import('naive-ui')['NLayout']
-    NLayoutContent: typeof import('naive-ui')['NLayoutContent']
-    NLayoutHeader: typeof import('naive-ui')['NLayoutHeader']
     NList: typeof import('naive-ui')['NList']
     NListItem: typeof import('naive-ui')['NListItem']
     NMessageProvider: typeof import('naive-ui')['NMessageProvider']
@@ -57,11 +50,9 @@ declare module 'vue' {
     NText: typeof import('naive-ui')['NText']
     NThing: typeof import('naive-ui')['NThing']
     NTooltip: typeof import('naive-ui')['NTooltip']
-    NUpload: typeof import('naive-ui')['NUpload']
     PaginationControls: typeof import('./src/components/blog/PaginationControls.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    Textarea: typeof import('primevue/textarea')['default']
     TweetComposer: typeof import('./src/components/tweet/TweetComposer.vue')['default']
     TweetList: typeof import('./src/components/tweet/TweetList.vue')['default']
   }
