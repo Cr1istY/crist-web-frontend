@@ -58,7 +58,7 @@
       <img
         :src="thumbnailSrc"
         :alt="post.title"
-        loading="lazy"
+        lazy
         @error="handleImageError"
         class="thumbnail-img"
       />

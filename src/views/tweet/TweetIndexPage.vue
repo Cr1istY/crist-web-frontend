@@ -14,7 +14,7 @@ import type { Tweet, User, TweetImage } from '@/types/tweet'
 const tweets = ref<Tweet[]>([])
 const isLoading = ref<boolean>(false) // 初始化为 false，由 loadTweets 控制
 const isTweetLoading = ref<boolean>(false)
-const hasMore = ref<boolean>(true)    // 标记是否还有更多数据
+const hasMore = ref<boolean>(true) // 标记是否还有更多数据
 const instance = getCurrentInstance()
 const isLogin = ref<boolean>(false)
 const currentUser = ref<User | null>(null)
@@ -58,9 +58,9 @@ const loadTweets = async (isLoadMore: boolean = false): Promise<void> => {
   isLoading.value = true
 
   try {
-    // 模拟网络延迟 (可选，保留原有的用户体验效果)
+    // 模拟网络延迟
     if (!isLoadMore) {
-      await new Promise(resolve => setTimeout(resolve, 600))
+      await new Promise((resolve) => setTimeout(resolve, 200))
     }
 
     // 构建带参数的 URL
@@ -101,7 +101,6 @@ const loadTweets = async (isLoadMore: boolean = false): Promise<void> => {
       tweets.value = newTweets
       offset = LIMIT // 下一次从 LIMIT 开始
     }
-
   } catch (error) {
     console.error('加载推文失败:', error)
     showToast('error', '加载失败', '无法获取推文列表，请稍后重试')
@@ -127,8 +126,8 @@ const getCurrentUser = async (): Promise<User | null> => {
     // 根据实际后端返回结构调整，假设 data 字段包含用户信息
     const userData = res.data?.data || res.data
     if (userData) {
-        isLogin.value = true
-        return userData as User
+      isLogin.value = true
+      return userData as User
     }
     return null
   } catch (error) {
@@ -224,7 +223,7 @@ onMounted(async (): Promise<void> => {
       if (user) {
         currentUser.value = user
       }
-    })()
+    })(),
   ])
 })
 </script>
@@ -235,7 +234,7 @@ onMounted(async (): Promise<void> => {
 
     <header class="app-header">
       <div class="header-content">
-        <i class="pi pi-crown logo"></i>
+        <i class="pi pi-box logo"></i>
         <h1>Threads</h1>
       </div>
     </header>
@@ -259,11 +258,7 @@ onMounted(async (): Promise<void> => {
 
         <!-- 加载更多按钮 / 加载状态指示器 -->
         <div class="load-more-container">
-          <button
-            v-if="hasMore && !isLoading"
-            @click="loadTweets(true)"
-            class="load-more-btn"
-          >
+          <button v-if="hasMore && !isLoading" @click="loadTweets(true)" class="load-more-btn">
             加载更多推文
           </button>
 
@@ -272,29 +267,29 @@ onMounted(async (): Promise<void> => {
             <span>加载中...</span>
           </div>
 
-          <div v-if="!hasMore && tweets.length > 0" class="no-more-text">
-            没有更多推文了
-          </div>
+          <div v-if="!hasMore && tweets.length > 0" class="no-more-text">没有更多推文了</div>
         </div>
       </div>
 
       <aside class="sidebar">
         <div class="sidebar-card">
-          <h3>趋势</h3>
+          <h3>当前专注</h3>
           <div class="trend-item">
-            <span class="trend-category">科技 · 热门</span>
-            <span class="trend-title">#Vue3</span>
-            <span class="trend-count">12.5K 推文</span>
+            <span class="trend-category">核心目标</span>
+            <span class="trend-title">研究生入学考试备考</span>
+            <span class="trend-count"></span>
           </div>
+
           <div class="trend-item">
-            <span class="trend-category">编程 · 热门</span>
-            <span class="trend-title">#TypeScript</span>
-            <span class="trend-count">8.3K 推文</span>
+            <span class="trend-category">自我提升</span>
+            <span class="trend-title">深度阅读计划</span>
+            <span class="trend-count"></span>
           </div>
+
           <div class="trend-item">
-            <span class="trend-category">前端 · 热门</span>
-            <span class="trend-title">#PrimeVue</span>
-            <span class="trend-count">5.1K 推文</span>
+            <span class="trend-category">技术探索</span>
+            <span class="trend-title">cSharp mod</span>
+            <span class="trend-count"></span>
           </div>
         </div>
       </aside>
@@ -357,6 +352,18 @@ body {
 .logo {
   font-size: 2rem;
   color: var(--p-orange-600);
+  /* 应用动画：名称 时长 缓动函数 无限循环 */
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0); /* 初始位置和结束位置 */
+  }
+  50% {
+    transform: translateY(-5px); /* 移动到上方 10px */
+  }
 }
 
 .header-content h1 {
