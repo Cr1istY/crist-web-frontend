@@ -18,6 +18,7 @@
         <n-card title="快速跳转" :bordered="false">
           <n-button type="primary" @click="$router.push('/')">回到首页</n-button>
           <n-button type="primary" @click="$router.push('/blog')">回到博客页面</n-button>
+          <n-button type="primary" @click="$router.push('/admin/changeUserInfo')">更改个人信息</n-button>
         </n-card>
       </n-space>
     </n-layout-content>

@@ -4,6 +4,7 @@ import HomeView from '@/views/blog/HomePage.vue'
 import NotFound from '@/views/NotFoundPage.vue'
 import BlogListWithPinned from '@/views/blog/BlogListFinal.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
+import ChangeUserInfo from '@/views/admin/user-change-info.vue'
 import CreatePost from '@/views/post/AdminCreatePost.vue'
 import UpdatePost from '@/views/post/AdminUpdatePost.vue'
 import BlogDetailPageWithSlug from '@/views/blog/BlogDetailPageWithSlug.vue'
@@ -79,6 +80,12 @@ const router = createRouter({
       name: 'AdminIndex',
       component: AdminIndex,
       meta: { title: 'Admin Index' },
+    },
+    {
+      path: '/admin/changeUserInfo',
+      name: 'ChangeUserInfo',
+      component: ChangeUserInfo,
+      meta: { title: '修改用户信息' },
     },
     // 404
     {

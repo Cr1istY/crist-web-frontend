@@ -4,6 +4,8 @@ export interface User {
   displayName: string
   avatar: string
   verified: boolean
+  bio: string
+  email: string
 }
 
 export interface Tweet {
