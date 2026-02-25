@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineOptions({
-  name: 'TweetIndexPage'
+  name: 'TweetIndexPage',
 })
 import { ref, onMounted, getCurrentInstance } from 'vue'
 import Toast from 'primevue/toast'
@@ -45,7 +45,6 @@ const loadTweets = (): void => {
         likes: tweet.likes,
         images: tweet.images,
       }))
-      console.log(tweets.value)
       isLoading.value = false
     } catch (error) {
       console.log('error: ', error)
@@ -107,6 +106,23 @@ const handleLike = (tweetId: string): void => {
   }
 }
 
+const removeTweet = async (id: string | number) => {
+  // 在这里调用 API 或从本地数组中过滤掉该推文
+  if (confirm('确定要删除这条推文吗？')) {
+    try {
+      const res = await service.delete(`/tweet/delete/${id}`)
+      if (res.data.code === 200) {
+        console.log('删除成功')
+        tweets.value = tweets.value.filter((t) => t.id !== id)
+      }
+      loadTweets()
+    } catch (error) {
+      console.error('删除推文失败:', error)
+    }
+  }
+
+}
+
 onMounted(async (): Promise<void> => {
   loadTweets()
   const user = await getCurrentUser()
@@ -129,9 +145,19 @@ onMounted(async (): Promise<void> => {
 
     <main class="main-content">
       <div class="feed-container">
-        <TweetComposer v-if="isLogin && currentUser" :current-user="currentUser" @submit="handleTweetSubmit" />
+        <TweetComposer
+          v-if="isLogin && currentUser"
+          :current-user="currentUser"
+          @submit="handleTweetSubmit"
+        />
 
-        <TweetList :tweets="tweets" :loading="isLoading" @like="handleLike" />
+        <TweetList
+          :tweets="tweets"
+          :loading="isLoading"
+          :current-user="currentUser || undefined"
+          @like="handleLike"
+          @delete-tweet="removeTweet"
+        />
       </div>
 
       <aside class="sidebar">

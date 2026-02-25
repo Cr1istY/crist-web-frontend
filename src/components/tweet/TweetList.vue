@@ -1,33 +1,40 @@
 <script setup lang="ts">
-import Card from 'primevue/card';
-import Avatar from 'primevue/avatar';
-import Divider from 'primevue/divider';
-import type { TweetListProps } from '@/types/tweet';
+import Card from 'primevue/card'
+import Avatar from 'primevue/avatar'
+import Divider from 'primevue/divider'
+import Button from 'primevue/button'
+import type { TweetListProps } from '@/types/tweet'
 
 withDefaults(defineProps<TweetListProps>(), {
   loading: false,
-  tweets: () => []
-});
+  tweets: () => [],
+})
+
+const emit = defineEmits<{
+  (e: 'delete-tweet', id: string | number): void
+}>()
 
 const formatTimestamp = (date: Date): string => {
-  const now: Date = new Date();
-  const diff: number = now.getTime() - new Date(date).getTime();
-  const minutes: number = Math.floor(diff / 60000);
-  const hours: number = Math.floor(diff / 3600000);
-  const days: number = Math.floor(diff / 86400000);
+  const now: Date = new Date()
+  const diff: number = now.getTime() - new Date(date).getTime()
+  const minutes: number = Math.floor(diff / 60000)
+  const hours: number = Math.floor(diff / 3600000)
+  const days: number = Math.floor(diff / 86400000)
 
-  if (minutes < 1) return '刚刚';
-  if (minutes < 60) return `${minutes}分钟前`;
-  if (hours < 24) return `${hours}小时前`;
-  if (days < 7) return `${days}天前`;
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
+  if (days < 7) return `${days}天前`
 
   return new Date(date).toLocaleDateString('zh-CN', {
     month: 'short',
-    day: 'numeric'
-  });
-};
+    day: 'numeric',
+  })
+}
 
-
+const handleDelete = (id: string | number) => {
+  emit('delete-tweet', id)
+}
 </script>
 
 <template>
@@ -42,11 +49,7 @@ const formatTimestamp = (date: Date): string => {
       <span>暂无推文</span>
     </div>
 
-    <Card
-      v-for="tweet in tweets"
-      :key="tweet.id"
-      class="tweet-card"
-    >
+    <Card v-for="tweet in tweets" :key="tweet.id" class="tweet-card">
       <template #header>
         <div class="tweet-header">
           <Avatar
@@ -87,6 +90,17 @@ const formatTimestamp = (date: Date): string => {
 
         <Divider />
 
+        <!-- 3. 添加操作区域和删除按钮 -->
+        <div class="tweet-actions">
+          <Button
+            v-if="currentUser && tweet.user.id === currentUser.id"
+            icon="pi pi-trash"
+            rounded
+            severity="secondary"
+            @click="handleDelete(tweet.id)"
+            class="delete-btn"
+          />
+        </div>
       </template>
     </Card>
   </div>
@@ -148,7 +162,7 @@ const formatTimestamp = (date: Date): string => {
 
 .verified-badge {
   color: var(--blue-500);
-  font-size: 1rem;
+  font-size: 0.5rem;
 }
 
 .username {
@@ -186,23 +200,21 @@ const formatTimestamp = (date: Date): string => {
 
 .tweet-actions {
   display: flex;
-  justify-content: space-around;
+  justify-content: flex-end;
   padding: 0.5rem 1rem 1rem;
 }
 
+/* 优化删除按钮的悬停效果 */
+.delete-btn:hover {
+  background-color: var(--red-50);
+}
+
+/* 原有的样式保留，以防有其他动作按钮后续加入 */
 .tweet-actions .p-button {
   color: var(--text-color-secondary);
 }
 
-.tweet-actions .p-button:hover {
-  background-color: transparent;
-}
-
 .tweet-actions .p-button.p-button-danger {
   color: var(--red-500);
-}
-
-.tweet-actions .p-button.p-button-success {
-  color: var(--green-500);
 }
 </style>

@@ -18,6 +18,7 @@ export interface Tweet {
 export interface TweetListProps {
   tweets: Tweet[]
   loading?: boolean
+  currentUser?: User
 }
 
 export interface TweetEmits {
