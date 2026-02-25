@@ -2,6 +2,7 @@
 defineOptions({
   name: 'TweetIndexPage',
 })
+
 import { ref, onMounted, getCurrentInstance } from 'vue'
 import Toast from 'primevue/toast'
 import TweetComposer from '@/components/tweet/TweetComposer.vue'
@@ -9,13 +10,20 @@ import TweetList from '@/components/tweet/TweetList.vue'
 import service from '@/utils/request'
 import type { Tweet, User, TweetImage } from '@/types/tweet'
 
+// --- 状态定义 ---
 const tweets = ref<Tweet[]>([])
-const isLoading = ref<boolean>(true)
+const isLoading = ref<boolean>(false) // 初始化为 false，由 loadTweets 控制
+const isTweetLoading = ref<boolean>(false)
+const hasMore = ref<boolean>(true)    // 标记是否还有更多数据
 const instance = getCurrentInstance()
 const isLogin = ref<boolean>(false)
-
 const currentUser = ref<User | null>(null)
 
+// --- 分页配置 ---
+const LIMIT = 20
+let offset = 0 // 记录当前已加载的数量，作为下一次请求的 offset
+
+// --- 工具函数 ---
 const showToast = (
   severity: 'success' | 'info' | 'warn' | 'error',
   summary: string,
@@ -30,28 +38,83 @@ const showToast = (
   })
 }
 
-const loadTweets = (): void => {
+// --- 核心加载函数 ---
+/**
+ * @param isLoadMore - true 表示加载更多(追加), false 表示刷新/首次加载(重置)
+ */
+const loadTweets = async (isLoadMore: boolean = false): Promise<void> => {
+  // 如果正在加载中，或者没有更多数据了却尝试加载更多，则直接返回
+  if (isLoading.value || (isLoadMore && !hasMore.value)) {
+    return
+  }
+
+  // 如果是刷新操作（非加载更多），重置状态
+  if (!isLoadMore) {
+    offset = 0
+    tweets.value = []
+    hasMore.value = true
+  }
+
   isLoading.value = true
-  setTimeout(async (): Promise<void> => {
-    try {
-      const res = await fetch('/api/tweet/getall')
-      if (!res.ok) throw new Error('API error')
-      const apiTweets: Tweet[] = await res.json()
-      tweets.value = apiTweets.map((tweet) => ({
-        id: tweet.id,
-        user: tweet.user,
-        content: tweet.content,
-        timestamp: tweet.timestamp,
-        likes: tweet.likes,
-        images: tweet.images,
-      }))
-      isLoading.value = false
-    } catch (error) {
-      console.log('error: ', error)
+
+  try {
+    // 模拟网络延迟 (可选，保留原有的用户体验效果)
+    if (!isLoadMore) {
+      await new Promise(resolve => setTimeout(resolve, 600))
     }
-  }, 1000)
+
+    // 构建带参数的 URL
+    const url = new URL('/api/tweet/getall', window.location.origin)
+    url.searchParams.append('limit', LIMIT.toString())
+    url.searchParams.append('offset', offset.toString())
+
+    const res = await fetch(url.toString())
+
+    if (!res.ok) {
+      throw new Error(`API error: ${res.status}`)
+    }
+
+    const apiTweets: Tweet[] = await res.json()
+
+    // 映射数据 (保持原有逻辑)
+    const newTweets: Tweet[] = apiTweets.map((tweet) => ({
+      id: tweet.id,
+      user: tweet.user,
+      content: tweet.content,
+      timestamp: new Date(tweet.timestamp), // 确保是 Date 对象，如果后端传的是字符串
+      likes: tweet.likes,
+      images: tweet.images,
+    }))
+
+    // 判断是否还有更多数据
+    // 如果返回的数量少于请求的 limit，说明到底了
+    if (newTweets.length < LIMIT) {
+      hasMore.value = false
+    }
+
+    if (isLoadMore) {
+      // 追加模式
+      tweets.value = [...tweets.value, ...newTweets]
+      offset += LIMIT // 更新 offset 供下一次使用
+    } else {
+      // 重置模式
+      tweets.value = newTweets
+      offset = LIMIT // 下一次从 LIMIT 开始
+    }
+
+  } catch (error) {
+    console.error('加载推文失败:', error)
+    showToast('error', '加载失败', '无法获取推文列表，请稍后重试')
+    // 如果出错且是加载更多，可能需要回滚 offset，这里简单处理不回滚，用户可重试
+    if (!isLoadMore) {
+      offset = 0
+    }
+  } finally {
+    isLoading.value = false
+  }
 }
 
+// --- 用户相关 ---
 const getCurrentUser = async (): Promise<User | null> => {
   try {
     const token = localStorage.getItem('access_token')
@@ -59,76 +122,110 @@ const getCurrentUser = async (): Promise<User | null> => {
       return null
     }
     isLogin.value = true
+    // 假设 service 是 axios 实例，且拦截器已处理 token
     const res = await service.get('/tweet/getCurrentUser')
-    console.log('res: ', res.data)
-    return res.data as User
+    // 根据实际后端返回结构调整，假设 data 字段包含用户信息
+    const userData = res.data?.data || res.data
+    if (userData) {
+        isLogin.value = true
+        return userData as User
+    }
+    return null
   } catch (error) {
-    console.log('error: ', error)
+    console.log('获取用户信息失败:', error)
+    isLogin.value = false
     return null
   }
 }
 
+// --- 业务逻辑 ---
 const handleTweetSubmit = async (content: string, images: TweetImage[]): Promise<void> => {
-  if (!isLogin.value) {
+  if (!isLogin.value || !currentUser.value) {
     showToast('error', '错误', '请先登录')
     return
   }
-  if (!currentUser.value) {
-    showToast('error', '错误', '请先登录')
-    return
+
+  isTweetLoading.value = true
+  try {
+    // 实际项目中这里应该调用 API 发布推文
+    // const res = await service.post('/tweet/create', { content, images: images.map(i => i.url) })
+
+    // 模拟发布成功 (前端乐观更新)
+    const imageUrls: string[] = images.map((img) => img.url)
+    const newTweet: Tweet = {
+      id: `tweet-${Date.now()}`,
+      user: currentUser.value,
+      content,
+      timestamp: new Date(),
+      likes: 0,
+      images: imageUrls.length > 0 ? imageUrls : undefined,
+    }
+
+    // 插入到列表最前面
+    tweets.value.unshift(newTweet)
+
+    const imageCount = images.length
+    showToast(
+      'success',
+      '发布成功',
+      imageCount > 0 ? `已发布推文和 ${imageCount} 张图片` : '您的推文已成功发布',
+    )
+  } catch (error) {
+    showToast('error', '发布失败', '请稍后重试')
+    console.error('发布推文失败:', error)
+  } finally {
+    isTweetLoading.value = false
   }
-  // 提取图片 URL（实际项目中应该是上传后的 URL）
-  const imageUrls: string[] = images.map((img) => img.url)
-
-  const newTweet: Tweet = {
-    id: `tweet-${Date.now()}`,
-    user: currentUser.value,
-    content,
-    timestamp: new Date(),
-    likes: 0,
-    images: imageUrls.length > 0 ? imageUrls : undefined,
-  }
-
-  tweets.value.unshift(newTweet)
-
-  const imageCount = images.length
-  showToast(
-    'success',
-    '发布成功',
-    imageCount > 0 ? `已发布推文和 ${imageCount} 张图片` : '您的推文已成功发布',
-  )
 }
 
 const handleLike = (tweetId: string): void => {
-  const tweet: Tweet | undefined = tweets.value.find((t: Tweet) => t.id === tweetId)
+  const tweet = tweets.value.find((t) => t.id === tweetId)
   if (tweet) {
     tweet.likes += 1
+    // 实际项目中应调用 API 更新点赞状态
   }
 }
 
-const removeTweet = async (id: string | number) => {
-  // 在这里调用 API 或从本地数组中过滤掉该推文
-  if (confirm('确定要删除这条推文吗？')) {
-    try {
-      const res = await service.delete(`/tweet/delete/${id}`)
-      if (res.data.code === 200) {
-        console.log('删除成功')
-        tweets.value = tweets.value.filter((t) => t.id !== id)
-      }
-      loadTweets()
-    } catch (error) {
-      console.error('删除推文失败:', error)
+const removeTweet = async (id: string | number): Promise<void> => {
+  if (!confirm('确定要删除这条推文吗？')) {
+    return
+  }
+
+  try {
+    // 调用删除 API
+    const res = await service.delete(`/tweet/delete/${id}`)
+
+    // 假设后端返回 code 200 表示成功
+    if (res.data?.code === 200 || res.status === 200) {
+      // 从本地数组移除
+      tweets.value = tweets.value.filter((t) => t.id !== id)
+      showToast('success', '删除成功', '推文已删除')
+
+      // 注意：如果是分页加载后的删除，本地移除可能导致列表中间空缺。
+      // 简单的做法是重新加载第一页，或者这里不做重新加载，仅本地移除。
+      // 如果需要严格保持一致性，可以取消下面这行的注释：
+      // loadTweets(false)
+    } else {
+      throw new Error('Delete failed')
     }
+  } catch (error) {
+    console.error('删除推文失败:', error)
+    showToast('error', '删除失败', '请稍后重试')
   }
-
 }
 
+// --- 生命周期 ---
 onMounted(async (): Promise<void> => {
-  loadTweets()
-  const user = await getCurrentUser()
-  if (user != null) {
-    currentUser.value = user
-  }
+  // 并行执行：加载推文和获取用户信息
+  await Promise.all([
+    loadTweets(false), // 首次加载
+    (async () => {
+      const user = await getCurrentUser()
+      if (user) {
+        currentUser.value = user
+      }
+    })()
+  ])
 })
 </script>
 
@@ -149,15 +246,36 @@ onMounted(async (): Promise<void> => {
           v-if="isLogin && currentUser"
           :current-user="currentUser"
           @submit="handleTweetSubmit"
+          :loading="isTweetLoading"
         />
 
         <TweetList
           :tweets="tweets"
-          :loading="isLoading"
+          :loading="isLoading && tweets.length === 0"
           :current-user="currentUser || undefined"
           @like="handleLike"
           @delete-tweet="removeTweet"
         />
+
+        <!-- 加载更多按钮 / 加载状态指示器 -->
+        <div class="load-more-container">
+          <button
+            v-if="hasMore && !isLoading"
+            @click="loadTweets(true)"
+            class="load-more-btn"
+          >
+            加载更多推文
+          </button>
+
+          <div v-if="isLoading && tweets.length > 0" class="loading-spinner">
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>加载中...</span>
+          </div>
+
+          <div v-if="!hasMore && tweets.length > 0" class="no-more-text">
+            没有更多推文了
+          </div>
+        </div>
       </div>
 
       <aside class="sidebar">
@@ -259,6 +377,54 @@ body {
   background-color: #ffffff;
   border-radius: 1rem;
   border: 1px solid var(--surface-border);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 加载更多区域样式 */
+.load-more-container {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 1px solid var(--surface-border);
+  margin-top: auto;
+}
+
+.load-more-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 0.95rem;
+}
+
+.load-more-btn:hover {
+  background-color: #1a8cd8;
+}
+
+.load-more-btn:active {
+  transform: scale(0.98);
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+}
+
+.no-more-text {
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 .sidebar {

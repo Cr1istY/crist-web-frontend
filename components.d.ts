@@ -17,6 +17,7 @@ declare module 'vue' {
     Button: typeof import('primevue/button')['default']
     FileUpload: typeof import('primevue/fileupload')['default']
     HeatmapCalendarComponent: typeof import('./src/components/HeatmapCalendarComponent.vue')['default']
+    Image: typeof import('primevue/image')['default']
     NAlert: typeof import('naive-ui')['NAlert']
     NAvatar: typeof import('naive-ui')['NAvatar']
     NAvatarGroup: typeof import('naive-ui')['NAvatarGroup']

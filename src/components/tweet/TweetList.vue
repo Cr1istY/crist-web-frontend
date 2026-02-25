@@ -79,13 +79,14 @@ const handleDelete = (id: string | number) => {
         <p class="tweet-content">{{ tweet.content }}</p>
 
         <div v-if="tweet.images && tweet.images.length > 0" class="tweet-images">
-          <img
+
+          <n-image
             v-for="(image, index) in tweet.images"
-            :key="index"
+            lazy
             :src="image"
-            :alt="`推文图片${index + 1}`"
+            :key="index"
             class="tweet-image"
-          />
+            ></n-image>
         </div>
 
         <Divider />
@@ -186,8 +187,10 @@ const handleDelete = (id: string | number) => {
 .tweet-images {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.25rem;
+  gap: 0.5rem;
   padding: 0 1rem 1rem;
+  width: 100%;
+  max-width: 60wh;
 }
 
 .tweet-image {
@@ -196,6 +199,16 @@ const handleDelete = (id: string | number) => {
   object-fit: cover;
   border-radius: 0.5rem;
   cursor: pointer;
+}
+
+.tweet-images:has(.tweet-image:only-child) {
+  grid-template-columns: 1fr;
+}
+
+.tweet-images:has(.tweet-image:only-child) .tweet-image {
+  width: 100%;
+  height: auto;
+  max-height: 50vh;
 }
 
 .tweet-actions {
@@ -216,5 +229,16 @@ const handleDelete = (id: string | number) => {
 
 .tweet-actions .p-button.p-button-danger {
   color: var(--red-500);
+}
+
+:deep(.tweet-image .p-image-mask) {
+  display: none !important;
+}
+
+:deep(.tweet-image.p-image-preview:hover) {
+  box-shadow: none !important;
+  background-color: transparent !important;
+  /* 如果图片本身有 transform 效果也可以在这里重置 */
+  transform: none !important;
 }
 </style>
