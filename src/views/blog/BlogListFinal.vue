@@ -36,7 +36,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
 import BlogSidebar from '@/components/blog/BlogSideabar.vue'
-import BlogPostItem from '@/components/blog/BlogPostItem.vue'
+import BlogPostItem from '@/components/blog/blog-post-item.vue'
 import PaginationControls from '@/components/blog/PaginationControls.vue'
 import { useBlogSearch } from '@/composables/useBlogSearch'
 import { usePostFiltering } from '@/composables/usePostFiltering'

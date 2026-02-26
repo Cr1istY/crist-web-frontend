@@ -146,10 +146,6 @@ const handleTweetSubmit = async (content: string, images: TweetImage[]): Promise
 
   isTweetLoading.value = true
   try {
-    // 实际项目中这里应该调用 API 发布推文
-    // const res = await service.post('/tweet/create', { content, images: images.map(i => i.url) })
-
-    // 模拟发布成功 (前端乐观更新)
     const imageUrls: string[] = images.map((img) => img.url)
     const newTweet: Tweet = {
       id: `tweet-${Date.now()}`,
@@ -199,11 +195,6 @@ const removeTweet = async (id: string | number): Promise<void> => {
       // 从本地数组移除
       tweets.value = tweets.value.filter((t) => t.id !== id)
       showToast('success', '删除成功', '推文已删除')
-
-      // 注意：如果是分页加载后的删除，本地移除可能导致列表中间空缺。
-      // 简单的做法是重新加载第一页，或者这里不做重新加载，仅本地移除。
-      // 如果需要严格保持一致性，可以取消下面这行的注释：
-      // loadTweets(false)
     } else {
       throw new Error('Delete failed')
     }
