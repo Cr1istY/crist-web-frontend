@@ -7,6 +7,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import { PrimeVueResolver } from '@primevue/auto-import-resolver'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -20,6 +21,12 @@ export default defineConfig({
     }),
     Components({
       resolvers: [NaiveUiResolver(), PrimeVueResolver()],
+    }),
+    visualizer({
+      open: true, // 构建完成后自动打开浏览器
+      filename: 'dist/stats.html', // 输出文件名
+      gzipSize: true, // 显示 gzip 后的大小
+      brotliSize: true, // 显示 brotli 后的大小
     }),
   ],
   resolve: {

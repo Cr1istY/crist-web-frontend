@@ -8,7 +8,6 @@ export {}
 declare global {
   const EffectScope: typeof import('vue').EffectScope
   const NAvatar: typeof import('naive-ui').NAvatar
-  const NDialog: typeof import('naive-ui').NDialog
   const computed: typeof import('vue').computed
   const createApp: typeof import('vue').createApp
   const customRef: typeof import('vue').customRef
