@@ -32,6 +32,7 @@ declare module 'vue' {
     NGridItem: typeof import('naive-ui')['NGridItem']
     NH2: typeof import('naive-ui')['NH2']
     NH3: typeof import('naive-ui')['NH3']
+    NHighlight: typeof import('naive-ui')['NHighlight']
     NIcon: typeof import('naive-ui')['NIcon']
     NImage: typeof import('naive-ui')['NImage']
     NImageGroup: typeof import('naive-ui')['NImageGroup']
@@ -56,6 +57,6 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TweetComposer: typeof import('./src/components/tweet/TweetComposer.vue')['default']
-    TweetList: typeof import('./src/components/tweet/TweetList.vue')['default']
+    TweetList: typeof import('./src/components/tweet/tweet-list.vue')['default']
   }
 }

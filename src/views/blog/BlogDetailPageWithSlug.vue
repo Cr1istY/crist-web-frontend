@@ -61,8 +61,19 @@
                 </n-tag>
               </div>
               <!--description-->
-              <div class="post-excerpt" v-if="post.excerpt.length > 0">
-                <n-text type="scendary">{{ post.excerpt }}</n-text>
+              <div class="post-excerpt" v-if="post.excerpt && post.excerpt.length > 0">
+                <n-highlight
+                  :text="text"
+                  :patterns="patterns"
+                  :highlight-style="{
+                    padding: '0 6px',
+                    borderRadius: themeVars.borderRadius,
+                    display: 'inline-block',
+                    color: themeVars.baseColor,
+                    background: themeVars.primaryColor,
+                    transition: `all .3s ${themeVars.cubicBezierEaseInOut}`,
+                  }"
+                />
               </div>
             </div>
           </div>
@@ -72,6 +83,7 @@
             <MdPreview
               v-model="post.content"
               :preview-only="true"
+              preview-theme="vuepress"
               :theme="isDark ? 'dark' : 'light'"
               language="zh-CN"
               :toolbars="[]"
@@ -146,7 +158,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMessage, useDialog } from 'naive-ui'
+import { useMessage, useDialog, useThemeVars } from 'naive-ui'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 import { EyeOutline, HeartOutline } from '@vicons/ionicons5'
@@ -189,6 +201,11 @@ if (token) {
   update_flag.value = true
 }
 
+// 处理高亮
+const text = ref('')
+const patterns = ref([''])
+const themeVars = useThemeVars()
+
 // 格式化数字（如 1200 → 1.2k）
 const formatNumber = (num: number): string => {
   if (num >= 1000) {
@@ -214,6 +231,9 @@ const fetchPost = async (slug: string): Promise<void> => {
     if (!response.ok) throw new Error('文章不存在或已删除')
     const data: BlogPost = await response.json()
     post.value = data
+    // 高亮处理
+    text.value = post.value.excerpt ?? ''
+    patterns.value = post.value.tags ?? []
     isPinned.value = data.is_pinned || false
     // 设置 SEO
     document.title = data.meta_title || `${data.title} - foreveryang`
@@ -227,7 +247,14 @@ const fetchPost = async (slug: string): Promise<void> => {
       document.head.appendChild(metaDesc)
     }
     // 添加views-出错不做处理
-    await fetch(`/api/posts/addViews/${post.value?.id}`)
+    ;(async () => {
+      try {
+        await fetch(`/api/posts/addViews/${post.value?.id}`)
+      } catch (err) {
+        // 静默失败，或者只打印日志，不提示用户，不影响主流程
+        console.warn('增加浏览量失败:', err)
+      }
+    })()
   } catch (err) {
     const msg = err instanceof Error ? err.message : '未知错误'
     error.value = msg
@@ -389,7 +416,7 @@ watch(
 
 // 初始化主题（可选）
 onMounted(() => {
-  // isDark.value = localStorage.getItem('theme') === 'dark'
+  isDark.value = localStorage.getItem('theme') === 'dark'
 })
 </script>
 
@@ -431,8 +458,8 @@ onMounted(() => {
 }
 
 .post-header {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
+  margin-bottom: 2em;
+  padding-bottom: 2em;
   border-bottom: 1px solid var(--n-border-color);
 }
 
@@ -533,6 +560,12 @@ onMounted(() => {
 
 /* 响应式 */
 @media (max-width: 768px) {
+  .post-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 1px solid var(--n-border-color);
+  }
+
   .post-title {
     font-size: 24px;
   }
@@ -545,6 +578,16 @@ onMounted(() => {
 
   .post-stats {
     margin-left: 0;
+  }
+
+  .post-excerpt {
+    margin-top: 2em;
+    margin-left: auto;
+    margin-bottom: 1em;
+    flex-shrink: 1;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    display: block;
   }
 
   .stat-item {

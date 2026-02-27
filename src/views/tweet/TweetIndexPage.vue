@@ -6,7 +6,7 @@ defineOptions({
 import { ref, onMounted, getCurrentInstance } from 'vue'
 import Toast from 'primevue/toast'
 import TweetComposer from '@/components/tweet/TweetComposer.vue'
-import TweetList from '@/components/tweet/TweetList.vue'
+import TweetList from '@/components/tweet/tweet-list.vue'
 import service from '@/utils/request'
 import type { Tweet, User, TweetImage } from '@/types/tweet'
 

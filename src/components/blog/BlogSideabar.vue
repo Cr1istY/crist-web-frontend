@@ -249,7 +249,7 @@ watch(
 
 <style scoped>
 .sidebar {
-  width: 250px;
+  width: 260px;
   position: fixed;
   top: 24px;
   height: calc(100vh - 88px);
