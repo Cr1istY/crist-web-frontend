@@ -84,7 +84,7 @@ service.interceptors.response.use(
         // 关键修改：在刷新token时不要使用带token的service实例，避免循环
         const refreshToken = localStorage.getItem('refresh_token')
         const refreshConfig: AxiosRequestConfig = {
-          headers: refreshToken ? { Authorization: `Bearer ${refreshToken}` } : {}
+          headers: refreshToken ? { Authorization: `Bearer ${refreshToken}` } : {},
         }
 
         const {
@@ -107,7 +107,7 @@ service.interceptors.response.use(
         console.log('refresh 401') // 确保这行代码能执行
 
         // 清理认证信息
-        localStorage.removeItem('access_token')
+        // localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
 
         // 通知用户
@@ -118,7 +118,7 @@ service.interceptors.response.use(
           router.push({ name: 'login' })
         } catch (routerError) {
           console.error('路由跳转失败:', routerError)
-          window.location.href = '/login'
+          window.location.href = '/admin'
         }
 
         // 处理失败队列
