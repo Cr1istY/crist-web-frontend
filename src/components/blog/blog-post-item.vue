@@ -10,7 +10,7 @@
       </router-link>
 
       <div class="post-meta">
-        <n-text type="secondary" class="post-date">{{ post.date }}</n-text>
+        <n-tag v-if="post.category && post.category !== ''" type="info" size="small" round>{{ post.category }}</n-tag>
         <n-avatar-group
           :options="tagOptions"
           :max="3"
@@ -42,6 +42,7 @@
       <div class="post-stats">
         <p class="post-excerpt">{{ post.excerpt }}</p>
         <div class="stats-container">
+          <n-text type="secondary">发布于 {{ post.date }}</n-text>
           <div class="stat-item">
             <n-icon size="16" :component="EyeOutline" />
             <span>{{ formatNumber(post.views) }}</span>

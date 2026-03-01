@@ -2,6 +2,7 @@ interface BlogPost {
   id: number
   slug: string
   title: string
+  category: string
   tags: string[]
   date: string
   excerpt: string
@@ -16,6 +17,7 @@ interface ApiPost {
   id: number
   slug: string
   title: string
+  category: string
   tags: string[]
   date?: string
   published_at?: string

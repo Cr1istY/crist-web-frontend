@@ -118,6 +118,7 @@ onMounted(async () => {
       id: p.id,
       slug: p.slug,
       title: p.title,
+      category: p.category || '',
       tags: Array.isArray(p.tags) ? p.tags : [],
       date: p.date || p.published_at?.split('T')[0] || '',
       excerpt: p.excerpt || '',
