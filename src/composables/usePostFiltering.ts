@@ -4,6 +4,7 @@ import type { BlogPost } from '@/types/blog'
 // 定义传入 filters 的接口，增加 searchFunction
 interface Filters {
   selectedDate: Ref<string | undefined>
+  selectedCat: Ref<string | undefined>
   selectedTag: Ref<string | undefined>
   searchKeyword: Ref<string>
   invertedIndex: Ref<Record<string, number[]>>
@@ -14,7 +15,7 @@ export function usePostFiltering(
   allPosts: Ref<BlogPost[]>,
   filters: Filters,
 ) {
-  const { selectedDate, selectedTag, searchKeyword, searchFunction /*, invertedIndex */ } = filters
+  const { selectedDate, selectedCat, selectedTag, searchKeyword, searchFunction /*, invertedIndex */ } = filters
 
   const filteredPosts = computed(() => {
     let candidates = [...allPosts.value]
@@ -29,6 +30,10 @@ export function usePostFiltering(
     // 日期筛选
     if (selectedDate.value) {
       candidates = candidates.filter((post) => post.date === selectedDate.value)
+    }
+
+    if (selectedCat.value) {
+      candidates = candidates.filter((post) => post.category === selectedCat.value!)
     }
 
     // 标签筛选

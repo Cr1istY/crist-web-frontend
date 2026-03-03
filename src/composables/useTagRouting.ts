@@ -33,3 +33,35 @@ export function useTagRouting(selectedTag: Ref<string | undefined>) {
 
   return { route, router }
 }
+
+export function useCategoryRouting(selectedCategory: Ref<string | undefined>) {
+  const route = useRoute()
+  const router = useRouter()
+
+  // 初始化：从路由读取category
+  if (route.query.cat) {
+    const cat = route.query.cat
+    selectedCategory.value = Array.isArray(cat)
+      ? (cat[0] ?? undefined)
+      : (cat ?? undefined)
+  }
+
+  // 监听selectedCategory变化，同步到路由
+  watch(selectedCategory, (newCat) => {
+    const newQuery = { ...route.query }
+    if (newCat) {
+      newQuery.cat = newCat
+    } else {
+      delete newQuery.cat
+    }
+    router.push({ query: newQuery })
+  }, { immediate: false })
+
+  // 监听路由变化（前进/后退）
+  watch(() => route.query.cat, (newVal) => {
+    if (newVal === selectedCategory.value) return
+    selectedCategory.value = Array.isArray(newVal) ? (newVal[0] ?? undefined) : (newVal || undefined)
+  })
+
+  return { route, router }
+}

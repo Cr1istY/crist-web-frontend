@@ -5,6 +5,7 @@
       :posts="allPosts"
       :total-posts="totalPosts"
       v-model:date="selectedDate"
+      v-model:cat="selectedCat"
       v-model:tag="selectedTag"
       v-model:search="searchKeyword"
       @clear-filters="clearFilters"
@@ -16,6 +17,7 @@
         :key="post.id"
         :post="post"
         :show-pin="showPinBadge(post)"
+        @cat-click="handleCatClick"
         @tag-click="handleTagClick"
       />
 
@@ -40,7 +42,7 @@ import BlogPostItem from '@/components/blog/blog-post-item.vue'
 import PaginationControls from '@/components/blog/PaginationControls.vue'
 import { useBlogSearch } from '@/composables/useBlogSearch'
 import { usePostFiltering } from '@/composables/usePostFiltering'
-import { useTagRouting } from '@/composables/useTagRouting'
+import { useTagRouting, useCategoryRouting } from '@/composables/useTagRouting'
 import type { BlogPost, ApiPost } from '@/types/blog'
 
 const message = useMessage()
@@ -50,15 +52,17 @@ const currentPage = ref(1)
 const pageSize = ref(12)
 const selectedDate = ref<string>()
 const selectedTag = ref<string>()
+const selectedCat = ref<string>()
 const searchKeyword = ref('')
 
 // 路由同步
 useTagRouting(selectedTag)
-
+useCategoryRouting(selectedCat)
 // 搜索索引
 const { invertedIndex, buildIndex, search } = useBlogSearch()
 const { filteredPosts } = usePostFiltering(allPosts, {
   selectedDate,
+  selectedCat,
   selectedTag,
   searchKeyword,
   invertedIndex,
@@ -67,7 +71,7 @@ const { filteredPosts } = usePostFiltering(allPosts, {
 
 // 置顶排序逻辑
 const hasActiveFilter = computed(
-  () => searchKeyword.value.trim() || selectedDate.value || selectedTag.value,
+  () => searchKeyword.value.trim() || selectedDate.value || selectedTag.value || selectedCat.value,
 )
 
 const sortedPosts = computed(() => {
@@ -94,7 +98,19 @@ const totalPosts = computed(() => sortedPosts.value.length)
 // 事件处理
 const showPinBadge = (post: BlogPost) => !hasActiveFilter.value && post.is_pinned
 const handleTagClick = (tag: string) => {
+  if (selectedTag.value === tag) {
+    selectedTag.value = ''
+    return
+  }
   selectedTag.value = tag
+  currentPage.value = 1
+}
+const handleCatClick = (cat: string) => {
+  if (selectedCat.value === cat) {
+    selectedCat.value = ''
+    return
+  }
+  selectedCat.value = cat
   currentPage.value = 1
 }
 const clearFilters = () => {

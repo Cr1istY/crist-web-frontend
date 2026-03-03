@@ -10,7 +10,14 @@
       </router-link>
 
       <div class="post-meta">
-        <n-tag v-if="post.category && post.category !== ''" type="info" size="small" round>{{ post.category }}</n-tag>
+        <n-tag
+          v-if="post.category && post.category !== ''"
+          type="info"
+          size="small"
+          round
+          @click.stop="$emit('cat-click', post.category)"
+          >{{ post.category }}</n-tag
+        >
         <n-avatar-group
           :options="tagOptions"
           :max="3"
@@ -76,7 +83,7 @@ const props = defineProps<{
   post: BlogPost
   showPin: boolean
 }>()
-const emit = defineEmits<{ 'tag-click': [tag: string] }>()
+const emit = defineEmits<{ 'tag-click': [tag: string]; 'cat-click': [cat: string] }>()
 
 // 标签头像生成
 const stringToColor = (str: string): string => {
