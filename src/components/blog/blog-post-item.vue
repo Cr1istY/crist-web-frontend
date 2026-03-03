@@ -160,8 +160,9 @@ const formatNumber = (num: number) => (num >= 1000 ? `${(num / 1000).toFixed(1)}
 <style scoped>
 .post-item {
   display: flex;
+  align-items: center;
   gap: 16px;
-  padding: 16px 0;
+  padding: 12px 0;
   border-bottom: 1px solid #e5e7eb;
   position: relative;
   transition: background-color 0.2s;
@@ -208,8 +209,8 @@ const formatNumber = (num: number) => (num >= 1000 ? `${(num / 1000).toFixed(1)}
   margin: 8px 0;
 }
 .post-thumbnail {
-  width: 160px;
-  height: 90px;
+  width: 176px;
+  height: 99px;
   flex-shrink: 0;
   border-radius: 8px;
   overflow: hidden;
