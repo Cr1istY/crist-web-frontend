@@ -32,7 +32,7 @@
           <div class="post-header">
             <h1 class="post-title">{{ post.title }}</h1>
             <div class="post-meta">
-              <n-tag type="info" size="small" round>{{ post.category }}</n-tag>
+              <n-tag type="info" size="small" round @click="goToCat(post.category)">{{ post.category }}</n-tag>
               <n-text type="secondary">编辑于{{ post.date }}</n-text>
               <div class="post-stats">
                 <span class="stat-item">
@@ -275,6 +275,10 @@ const retry = (): void => {
 // 跳转到标签页
 const goToTag = (tag: string): void => {
   router.push({ path: '/blog', query: { tag } })
+}
+const goToCat = (cat: string): void => {
+  cat = cat.split('/').pop() ?? cat
+  router.push({ path: '/blog', query: { cat } })
 }
 
 // 分享文章
