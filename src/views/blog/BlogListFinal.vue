@@ -1,9 +1,10 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="blog-layout">
+    <!-- 侧边栏：两端共用 -->
     <BlogSidebar
       :posts="allPosts"
-      :total-posts="totalPosts"
+      :total-posts="sortedPosts.length"
       v-model:date="selectedDate"
       v-model:cat="selectedCat"
       v-model:tag="selectedTag"
@@ -12,9 +13,13 @@
     />
 
     <main class="main-content">
-      <!-- 文章列表 -->
+      <!--
+        核心区别：
+        移动端 (isMobile=true): 渲染 visiblePosts (累积列表)
+        桌面端 (isMobile=false): 渲染 paginatedPosts (当前页切片)
+      -->
       <BlogPostItem
-        v-for="post in visiblePosts"
+        v-for="post in displayPosts"
         :key="post.id"
         :post="post"
         :show-pin="showPinBadge(post)"
@@ -22,34 +27,43 @@
         @tag-click="handleTagClick"
       />
 
-      <!-- 哨兵元素：用于触发加载 -->
-      <!-- 只有在移动端模式 (isMobile) 且还有更多数据时才显示 -->
-      <div v-if="isMobile && hasMoreData" ref="loadTriggerRef" class="load-trigger">
-        <n-spin v-if="isLoadingMore" size="small" description="加载中..." />
-        <n-divider v-else dashed>上拉加载更多</n-divider>
-      </div>
+      <!-- === 移动端区域：无限滚动 === -->
+      <template v-if="isMobile">
+        <!-- 哨兵元素：用于触发加载 -->
+        <div
+          v-if="hasMoreData"
+          ref="loadTriggerRef"
+          class="load-trigger"
+        >
+          <n-spin v-if="isLoadingMore" size="small" description="加载中..." />
+          <n-divider v-else dashed>上拉加载更多</n-divider>
+        </div>
 
-      <!-- 无更多数据提示 -->
-      <div v-if="isMobile && !hasMoreData && sortedPosts.length > 0" class="no-more-text">
-        <n-divider>没有更多文章了</n-divider>
-      </div>
+        <!-- 无更多数据提示 -->
+        <div v-if="!hasMoreData && sortedPosts.length > 0" class="no-more-text">
+          <n-divider>没有更多文章了</n-divider>
+        </div>
+      </template>
 
-      <!-- 桌面端分页器 (仅在非移动端显示) -->
-      <PaginationControls
-        v-if="!isMobile && totalPages > 1"
-        v-model:page="currentPage"
-        v-model:page-size="pageSize"
-        :total-pages="totalPages"
-        @update:page-size="handlePageSizeChange"
-      />
+      <!-- === 桌面端区域：分页控件 === -->
+      <template v-else>
+        <PaginationControls
+          v-if="totalPages > 1"
+          v-model:page="currentPage"
+          v-model:page-size="pageSize"
+          :total-pages="totalPages"
+          @update:page-size="handlePageSizeChange"
+        />
+      </template>
 
+      <!-- 空状态 -->
       <n-empty v-if="!loading && sortedPosts.length === 0" description="暂无匹配文章" />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useMessage } from 'naive-ui'
 import BlogSidebar from '@/components/blog/BlogSideabar.vue'
 import BlogPostItem from '@/components/blog/blog-post-item.vue'
@@ -63,16 +77,18 @@ const message = useMessage()
 const allPosts = ref<BlogPost[]>([])
 const loading = ref(true)
 
-// --- 核心配置 ---
+// --- 配置 ---
 const DESKTOP_PAGE_SIZE = 12
-const MOBILE_PAGE_SIZE = 10 // 移动端每次加载的数量
+const MOBILE_PAGE_SIZE = 10
 
+// --- 状态 ---
 const currentPage = ref(1)
 const pageSize = ref(DESKTOP_PAGE_SIZE)
-const isMobile = ref(false)
-const isLoadingMore = ref(false) // 正在加载更多的状态
-const loadTriggerRef = ref<HTMLElement | null>(null) // 哨兵元素引用
+const isMobile = ref(false) // 设备状态
+const isLoadingMore = ref(false)
+const loadTriggerRef = ref<HTMLElement | null>(null)
 
+// 筛选状态
 const selectedDate = ref<string>()
 const selectedTag = ref<string>()
 const selectedCat = ref<string>()
@@ -82,7 +98,7 @@ const searchKeyword = ref('')
 useTagRouting(selectedTag)
 useCategoryRouting(selectedCat)
 
-// 搜索与过滤
+// 搜索与过滤逻辑
 const { invertedIndex, buildIndex, search } = useBlogSearch()
 const { filteredPosts } = usePostFiltering(allPosts, {
   selectedDate,
@@ -93,9 +109,9 @@ const { filteredPosts } = usePostFiltering(allPosts, {
   searchFunction: search,
 })
 
-// 排序逻辑
+// --- 排序逻辑 ---
 const hasActiveFilter = computed(
-  () => searchKeyword.value.trim() || selectedDate.value || selectedTag.value || selectedCat.value,
+  () => !!searchKeyword.value.trim() || !!selectedDate.value || !!selectedTag.value || !!selectedCat.value,
 )
 
 const sortedPosts = computed(() => {
@@ -103,6 +119,7 @@ const sortedPosts = computed(() => {
   if (hasActiveFilter.value) {
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
+  // 置顶逻辑
   return list.sort((a, b) => {
     if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1
     if (a.is_pinned && b.is_pinned) return a.pinned_order - b.pinned_order
@@ -110,49 +127,57 @@ const sortedPosts = computed(() => {
   })
 })
 
-// 【关键修改】visiblePosts：根据当前页码切片，而不是直接展示所有
-// 在移动端，随着 currentPage 增加，这里会自动包含更多数据
+// --- 核心显示逻辑区分 ---
+
+// 1. 移动端模式：返回从第1条到当前页末的所有数据 (累积)
 const visiblePosts = computed(() => {
-  const start = 0
+  if (!isMobile.value) return []
   const end = currentPage.value * pageSize.value
-  return sortedPosts.value.slice(start, end)
+  return sortedPosts.value.slice(0, end)
 })
 
-// 计算总页数（用于判断是否有更多数据）
-const totalPages = computed(() => Math.ceil(sortedPosts.value.length / pageSize.value))
-const totalPosts = computed(() => sortedPosts.value.length)
+// 2. 桌面端模式：仅返回当前页的数据 (切片)
+const paginatedPosts = computed(() => {
+  if (isMobile.value) return []
+  const start = (currentPage.value - 1) * pageSize.value
+  return sortedPosts.value.slice(start, start + pageSize.value)
+})
 
-// 是否还有更多数据可加载
+// 根据设备状态决定渲染哪个列表
+const displayPosts = computed(() => {
+  return isMobile.value ? visiblePosts.value : paginatedPosts.value
+})
+
+// 分页计算
+const totalPages = computed(() => Math.ceil(sortedPosts.value.length / pageSize.value))
 const hasMoreData = computed(() => currentPage.value < totalPages.value)
 
-// 事件处理
+// --- 事件处理 ---
+
 const showPinBadge = (post: BlogPost) => !hasActiveFilter.value && post.is_pinned
 
 const resetPagination = () => {
   currentPage.value = 1
-  // 重置时不需要重新设置 pageSize，因为 watch 会处理，或者在这里显式处理
+  // 如果是移动端，重置后需要重新触发观察器检查（因为列表长度变了）
+  if (isMobile.value) {
+    nextTick(() => setupObserver())
+  }
 }
 
 const handleTagClick = (tag: string) => {
-  if (selectedTag.value === tag) {
-    selectedTag.value = ''
-  } else {
-    selectedTag.value = tag
-  }
+  selectedTag.value = selectedTag.value === tag ? '' : tag
   resetPagination()
 }
 
 const handleCatClick = (cat: string) => {
-  if (selectedCat.value === cat) {
-    selectedCat.value = ''
-  } else {
-    selectedCat.value = cat
-  }
+  selectedCat.value = selectedCat.value === cat ? '' : cat
   resetPagination()
 }
 
 const clearFilters = () => {
-  selectedDate.value = selectedTag.value = searchKeyword.value = ''
+  selectedDate.value = undefined
+  selectedTag.value = undefined
+  searchKeyword.value = ''
   resetPagination()
 }
 
@@ -161,80 +186,83 @@ const handlePageSizeChange = (size: number) => {
   resetPagination()
 }
 
-// --- 移动端自适应与无限滚动逻辑 ---
+// --- 设备检测与自适应 ---
 
-// 1. 检查屏幕尺寸并设置 PageSize
 const checkScreenSize = () => {
   const wasMobile = isMobile.value
-  isMobile.value = window.innerWidth <= 640
+  // 断点可根据需求调整，这里沿用之前的 640px 或 768px
+  isMobile.value = window.innerWidth <= 768
 
-  if (isMobile.value) {
-    pageSize.value = MOBILE_PAGE_SIZE
-  } else {
-    pageSize.value = DESKTOP_PAGE_SIZE
-  }
+  // 切换设备时更新每页数量
+  pageSize.value = isMobile.value ? MOBILE_PAGE_SIZE : DESKTOP_PAGE_SIZE
 
-  // 如果从移动端切回桌面端，或者反之，重置页码以防数据错乱
+  // 【关键】设备类型切换时，必须重置页码到第1页
+  // 否则：桌面看第5页 -> 变手机 -> 此时 currentPage=5，但手机每页少，可能导致索引越界或显示空白
   if (wasMobile !== isMobile.value) {
     currentPage.value = 1
+    // 如果变成了移动端，需要重新设置观察器
+    if (isMobile.value) {
+      nextTick(() => setupObserver())
+    }
   }
 }
 
-// 2. 加载更多的函数
+// --- 无限滚动逻辑 (仅移动端有效) ---
+
 const loadMore = async () => {
-  if (isLoadingMore.value || !hasMoreData.value) return
+  // 双重检查：确保只在移动端且有数据时加载
+  if (!isMobile.value || isLoadingMore.value || !hasMoreData.value) return
 
   isLoadingMore.value = true
   try {
-    // 模拟网络延迟体验 (可选，实际项目中如果是纯前端过滤则不需要 await)
-    // 因为你的数据是全量获取后前端过滤的，所以这里其实是瞬间完成的
-    // 但为了 UI 反馈，我们保留一个微小的 tick
     await nextTick()
-
     currentPage.value++
   } catch (e) {
     message.error('加载失败' + e)
   } finally {
     isLoadingMore.value = false
+    // 加载完后，DOM更新，观察器会自动监测新的哨兵位置（如果还有下一页）
   }
 }
 
-// 3. Intersection Observer 实现
 let observer: IntersectionObserver | null = null
 
 const setupObserver = () => {
-  if (observer) observer.disconnect()
+  // 清理旧的观察器
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
+
+  // 只有在移动端、有触发元素、且还有更多数据时才建立观察
+  if (!isMobile.value || !loadTriggerRef.value || !hasMoreData.value) {
+    return
+  }
 
   observer = new IntersectionObserver(
     (entries) => {
       const [entry] = entries
-      if (entry?.isIntersecting && hasMoreData.value && !isLoadingMore.value) {
+      if (entry?.isIntersecting) {
         loadMore()
       }
     },
     {
-      rootMargin: '100px', // 提前 100px 开始加载
+      rootMargin: '100px', // 提前100px加载
       threshold: 0.1,
     },
   )
 
-  if (loadTriggerRef.value) {
-    observer.observe(loadTriggerRef.value)
-  }
+  observer.observe(loadTriggerRef.value)
 }
 
+// --- 生命周期 ---
+
 onMounted(async () => {
-  // 初始化屏幕检测
+  // 初始化检测
   checkScreenSize()
   window.addEventListener('resize', checkScreenSize)
 
-  // 设置观察器
-  // 注意：需要在 DOM 渲染后设置，如果初始就是移动端且有数据
-  nextTick(() => {
-    setupObserver()
-  })
-
-  // 加载数据
+  // 初始数据加载
   loading.value = true
   try {
     const res = await fetch('/api/posts/getAllPosts')
@@ -261,8 +289,10 @@ onMounted(async () => {
     message.error('加载文章失败')
   } finally {
     loading.value = false
-    // 数据加载完后，重新检查观察器（确保哨兵元素已存在）
-    nextTick(() => setupObserver())
+    // 数据加载完成后，如果是移动端，设置观察器
+    nextTick(() => {
+      if (isMobile.value) setupObserver()
+    })
   }
 })
 
@@ -271,16 +301,19 @@ onUnmounted(() => {
   if (observer) observer.disconnect()
 })
 
-// 当筛选条件变化导致 sortedPosts 变化时，需要重新连接观察器
-// 因为 DOM 可能会重排，哨兵元素位置变了
-import { watch } from 'vue'
+// --- 监听变化 ---
+
+// 当筛选条件变化 (sortedPosts 变化) 或 设备类型变化 (isMobile 变化) 时，重新设置观察器
 watch(
   [sortedPosts, isMobile],
   () => {
-    nextTick(() => setupObserver())
+    if (isMobile.value) {
+      nextTick(() => setupObserver())
+    }
   },
-  { deep: false },
+  { deep: false }
 )
+
 </script>
 
 <style scoped>
@@ -298,7 +331,7 @@ watch(
   margin-top: 24px;
 }
 
-/* 加载触发区域样式 */
+/* 移动端加载触发器样式 */
 .load-trigger {
   padding: 20px 0;
   display: flex;
@@ -314,7 +347,8 @@ watch(
   font-size: 14px;
 }
 
-@media (max-width: 640px) {
+/* 响应式布局调整 */
+@media (max-width: 768px) {
   .blog-layout {
     flex-direction: column;
     padding: 0 16px 32px;
