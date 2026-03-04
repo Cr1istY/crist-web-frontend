@@ -24,7 +24,7 @@
               object-fit="cover"
               preview-disabled
               width="100%"
-              style="border-radius: 8px; margin-bottom: 24px"
+              style="border-radius: 8px; margin-bottom: 24px;"
             />
           </div>
 
@@ -32,7 +32,9 @@
           <div class="post-header">
             <h1 class="post-title">{{ post.title }}</h1>
             <div class="post-meta">
-              <n-tag type="info" size="small" round @click="goToCat(post.category)">{{ post.category }}</n-tag>
+              <n-tag type="info" size="small" round @click="goToCat(post.category)">{{
+                post.category
+              }}</n-tag>
               <n-text type="secondary">编辑于{{ post.date }}</n-text>
               <div class="post-stats">
                 <span class="stat-item">
@@ -560,6 +562,15 @@ onMounted(() => {
 .post-image {
   width: 100%;
   margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.post-image :deep(img),
+.post-image :deep(.n-image__img) {
+  max-width: 100%;       
+  height: auto;
 }
 
 /* 响应式 */
