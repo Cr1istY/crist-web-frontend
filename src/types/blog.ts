@@ -11,6 +11,7 @@ interface BlogPost {
   thumbnail?: string
   is_pinned: boolean
   pinned_order: number
+  user: ListUser
 }
 
 interface ApiPost {
@@ -27,6 +28,14 @@ interface ApiPost {
   thumbnail?: string
   is_pinned?: boolean
   pinned_order?: number
+  user?: ListUser
 }
 
-export type {BlogPost, ApiPost}
+interface ListUser {
+  avatar?: string
+  is_admin?: boolean
+  nickname?: string
+  username?: string
+}
+
+export type {BlogPost, ApiPost, ListUser}

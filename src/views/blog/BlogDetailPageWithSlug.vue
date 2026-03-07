@@ -28,31 +28,7 @@
           <!-- 标题区 -->
           <div class="post-header">
             <h1 class="post-title">{{ post.title }}</h1>
-            <div class="post-meta">
-              <n-tag
-                type="info"
-                size="small"
-                round
-                style="cursor: pointer"
-                @click="goToCat(post.category)"
-                >{{ post.category }}</n-tag
-              >
-              <div class="post-stats">
-                <n-avatar v-if="post.user_avatar" round size="small" :src="post.user_avatar" />
-                <span class="stat-item">
-                  <n-icon size="16" :component="EyeOutline" />
-                  {{ formatNumber(post.views) }}
-                </span>
-                <span class="stat-item">
-                  <n-icon size="16" :component="HeartOutline" />
-                  {{ formatNumber(post.likes) }}
-                </span>
-                <span class="stat-item">
-                  <n-icon size="16" :component="ChatbubbleOutline" />
-                  Edited on {{ post.date }}
-                </span>
-              </div>
-            </div>
+
             <div class="post-description-bootom">
               <!-- 标签云 -->
               <div v-if="post.tags && post.tags.length > 0" class="post-tags">
@@ -82,6 +58,31 @@
                     transition: `all .3s ${themeVars.cubicBezierEaseInOut}`,
                   }"
                 />
+              </div>
+            </div>
+            <div class="post-meta">
+              <n-tag
+                type="info"
+                size="small"
+                round
+                style="cursor: pointer"
+                @click="goToCat(post.category)"
+                >{{ post.category }}</n-tag
+              >
+              <div class="post-stats">
+                <n-avatar v-if="post.user_avatar" round size="small" :src="post.user_avatar" />
+                <span class="stat-item">
+                  <n-icon size="16" :component="EyeOutline" />
+                  {{ formatNumber(post.views) }}
+                </span>
+                <span class="stat-item">
+                  <n-icon size="16" :component="HeartOutline" />
+                  {{ formatNumber(post.likes) }}
+                </span>
+                <span class="stat-item">
+                  <n-icon size="16" :component="ChatbubbleOutline" />
+                  Edited on {{ post.date }}
+                </span>
               </div>
             </div>
           </div>
@@ -451,11 +452,13 @@ onMounted(() => {
 }
 
 .post-header {
+  margin-top: 1cm;
   padding-bottom: 1em;
   border-bottom: 1px solid var(--n-border-color);
 }
 
 .post-title {
+  display: none;
   font-size: 28px;
   font-weight: 700;
   line-height: 1.4;
@@ -468,7 +471,7 @@ onMounted(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-top: 1em;
 }
 
 .post-stats {
@@ -529,45 +532,6 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.markdown-container {
-  margin: 24px 12px;
-}
-
-/* 覆盖 md-editor-v3 样式 */
-.markdown-preview :deep(.md-editor-preview-wrapper) {
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-}
-
-.markdown-preview :deep(.markdown-body) {
-  font-size: 16px;
-  line-height: 1.8;
-  color: var(--n-text-color);
-  --md-primary-color: var(--n-primary-color);
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.markdown-preview :deep(h1),
-.markdown-preview :deep(h2),
-.markdown-preview :deep(h3) {
-  margin-top: 1.5em;
-  margin-bottom: 0.8em;
-  font-weight: 600;
-}
-
-.markdown-preview :deep(p) {
-  margin: 1em 0;
-}
-
-.markdown-preview :deep(img) {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  margin: 16px 0;
-}
-
 .post-footer {
   margin-top: 32px;
   padding-top: 24px;
@@ -575,6 +539,7 @@ onMounted(() => {
 }
 
 .post-image {
+  max-height: 50vh;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -610,7 +575,8 @@ onMounted(() => {
   .post-meta {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 2em;
+    padding-bottom: 1em;
   }
 
   .post-stats {

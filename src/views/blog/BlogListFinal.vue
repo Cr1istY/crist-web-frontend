@@ -282,6 +282,7 @@ onMounted(async () => {
       thumbnail: p.thumbnail,
       is_pinned: p.is_pinned ?? false,
       pinned_order: p.pinned_order ?? 0,
+      user: p.user ?? {},
     }))
 
     buildIndex(allPosts.value)

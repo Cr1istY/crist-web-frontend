@@ -9,55 +9,66 @@
         {{ post.title }}
       </router-link>
 
-      <div class="post-meta">
-        <n-tag
-          v-if="post.category && post.category !== ''"
-          type="info"
-          size="small"
-          round
-          @click.stop="$emit('cat-click', post.category)"
-          >{{ post.category }}</n-tag
-        >
-        <n-avatar-group
-          :options="tagOptions"
-          :max="3"
-          size="small"
-          :style="{ display: 'inline-flex', gap: '4px', marginLeft: '8px' }"
-        >
-          <template #avatar="{ option }">
-            <n-tooltip :delay="200">
-              <template #trigger>
-                <n-avatar
-                  :src="option.src"
-                  :fallback="{ text: option.fallbackText }"
-                  style="cursor: pointer"
-                  @click.stop="$emit('tag-click', option.name)"
-                />
-              </template>
-              {{ option.name }}
-            </n-tooltip>
-          </template>
-
-          <template #rest="{ rest, options }">
-            <n-dropdown :options="dropdownOptions(options)" placement="top" trigger="hover">
-              <n-avatar>+{{ rest }}</n-avatar>
-            </n-dropdown>
-          </template>
-        </n-avatar-group>
+      <div class="stats-container">
+        <div class="stat-item">
+          <n-icon size="16" :component="AccessibilityColor" />
+          <span>{{ formatNumber(post.views) }}</span>
+        </div>
+        <div class="stat-item">
+          <n-icon size="16" :component="HeartCircleOutline" />
+          <span>{{ formatNumber(post.likes) }}</span>
+        </div>
+        <div class="stat-item">
+          <n-icon size="16" :component="EarthSharp" />
+          <span>{{ post.date }}</span>
+        </div>
       </div>
 
       <div class="post-stats">
         <p class="post-excerpt">{{ post.excerpt }}</p>
-        <div class="stats-container">
-          <n-text type="secondary">发布于 {{ post.date }}</n-text>
-          <div class="stat-item">
-            <n-icon size="16" :component="EyeOutline" />
-            <span>{{ formatNumber(post.views) }}</span>
-          </div>
-          <div class="stat-item">
-            <n-icon size="16" :component="HeartOutline" />
-            <span>{{ formatNumber(post.likes) }}</span>
-          </div>
+        <div class="post-meta">
+          <n-avatar
+            v-if="post.user"
+            size="small"
+            round
+            :scr="post.user.avatar"
+            style="margin-right: 0.8em"
+          />
+          <n-tag
+            v-if="post.category && post.category !== ''"
+            type="info"
+            size="small"
+            round
+            @click.stop="$emit('cat-click', post.category)"
+            style="cursor: pointer"
+            >{{ post.category }}</n-tag
+          >
+          <n-avatar-group
+            :options="tagOptions"
+            :max="3"
+            size="small"
+            :style="{ display: 'inline-flex', gap: '4px', marginLeft: '8px' }"
+          >
+            <template #avatar="{ option }">
+              <n-tooltip :delay="200">
+                <template #trigger>
+                  <n-avatar
+                    :src="option.src"
+                    :fallback="{ text: option.fallbackText }"
+                    style="cursor: pointer"
+                    @click.stop="$emit('tag-click', option.name)"
+                  />
+                </template>
+                {{ option.name }}
+              </n-tooltip>
+            </template>
+
+            <template #rest="{ rest, options }">
+              <n-dropdown :options="dropdownOptions(options)" placement="top" trigger="hover">
+                <n-avatar>+{{ rest }}</n-avatar>
+              </n-dropdown>
+            </template>
+          </n-avatar-group>
         </div>
       </div>
     </div>
@@ -76,7 +87,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { EyeOutline, HeartOutline } from '@vicons/ionicons5'
+import { HeartCircleOutline, EarthSharp } from '@vicons/ionicons5'
+import { AccessibilityColor } from '@vicons/carbon'
 import type { BlogPost } from '@/types/blog'
 
 const props = defineProps<{
@@ -162,15 +174,20 @@ const formatNumber = (num: number) => (num >= 1000 ? `${(num / 1000).toFixed(1)}
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 12px 0;
+  padding: 12px 0 12px 12px;
   border-bottom: 1px solid #e5e7eb;
+  border-radius: 12px;
   position: relative;
-  transition: background-color 0.2s;
+  transition: background-color 0.8s;
 }
 .post-item.is-pinned {
   background-color: #fff9f9;
-  border-left: 0px solid #ff4d4f;
-  padding-left: 13px;
+}
+.post-item:hover {
+  background-color: rgba(233, 229, 226, 0.3);
+}
+.post-item.is-pinned:hover {
+  background-color: #fff9f9;
 }
 .pin-badge {
   position: absolute;
@@ -199,7 +216,7 @@ const formatNumber = (num: number) => (num >= 1000 ? `${(num / 1000).toFixed(1)}
 .post-meta {
   display: flex;
   align-items: center;
-  margin: 4px 0 8px;
+  margin: 4px 0;
 }
 .post-excerpt {
   color: #333;
@@ -214,6 +231,7 @@ const formatNumber = (num: number) => (num >= 1000 ? `${(num / 1000).toFixed(1)}
   border-radius: 8px;
   overflow: hidden;
   background-color: #f8fafc;
+  margin-right: 1em;
 }
 .thumbnail-img {
   width: 100%;
@@ -226,7 +244,7 @@ const formatNumber = (num: number) => (num >= 1000 ? `${(num / 1000).toFixed(1)}
 }
 .stats-container {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.8rem;
   margin-top: 8px;
 }
 .stat-item {
