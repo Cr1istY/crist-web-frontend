@@ -1,9 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="blog-detail-wrapper">
-    <!-- 装饰性背景：左右淡色渐变，仅视觉增强 -->
-    <div class="decorative-bg"></div>
-
     <div class="blog-detail-page">
       <n-spin :show="loading" description="加载中..." size="large" style="margin-top: 24px">
         <!-- 错误提示 -->
@@ -15,7 +12,7 @@
         </n-alert>
 
         <!-- 文章内容 -->
-        <n-card v-else-if="post" :bordered="false" class="post-card" embedded>
+        <n-card v-else-if="post" :bordered="false" class="post-card">
           <!-- 图片区 -->
           <div class="post-image">
             <n-image
@@ -40,8 +37,8 @@
                 @click="goToCat(post.category)"
                 >{{ post.category }}</n-tag
               >
-              <n-text type="secondary">编辑于{{ post.date }}</n-text>
               <div class="post-stats">
+                <n-avatar v-if="post.user_avatar" round size="small" :src="post.user_avatar" />
                 <span class="stat-item">
                   <n-icon size="16" :component="EyeOutline" />
                   {{ formatNumber(post.views) }}
@@ -49,6 +46,10 @@
                 <span class="stat-item">
                   <n-icon size="16" :component="HeartOutline" />
                   {{ formatNumber(post.likes) }}
+                </span>
+                <span class="stat-item">
+                  <n-icon size="16" :component="ChatbubbleOutline" />
+                  Edited on {{ post.date }}
                 </span>
               </div>
             </div>
@@ -168,7 +169,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMessage, useDialog, useThemeVars } from 'naive-ui'
 import { MdPreview } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
-import { EyeOutline, HeartOutline } from '@vicons/ionicons5'
+import { EyeOutline, HeartOutline, ChatbubbleOutline } from '@vicons/ionicons5'
 import service from '@/utils/request'
 
 // 类型定义
@@ -187,6 +188,7 @@ interface BlogPost {
   meta_description?: string
   thumbnail?: string
   is_pinned?: boolean
+  user_avatar?: string
 }
 
 const route = useRoute()
@@ -437,34 +439,15 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-/* 装饰背景：左右淡色渐变 */
-.decorative-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: -1;
-  background: linear-gradient(
-    to right,
-    rgba(100, 100, 255, 0.03) 0%,
-    transparent 15%,
-    transparent 85%,
-    rgba(100, 100, 255, 0.03) 100%
-  );
-}
-
 .blog-detail-page {
   max-width: 1080px;
   margin: 0 auto;
-  padding: 24px 24px;
   min-height: calc(100vh - 120px);
 }
 
 .post-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   background: var(--n-color);
 }
 
@@ -493,6 +476,7 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   margin-left: auto;
+  margin-right: 12px;
 }
 
 .stat-item {
@@ -547,7 +531,7 @@ onMounted(() => {
 }
 
 .markdown-container {
-  margin: 24px 0;
+  margin: 24px 12px;
 }
 
 /* 覆盖 md-editor-v3 样式 */
@@ -604,7 +588,7 @@ onMounted(() => {
 .post-image :deep(.n-image__img) {
   max-width: 100%;
   height: auto;
-  transition: transform 0.6s ease;
+  transition: transform 2s ease;
 }
 
 .post-image:hover :deep(img) {
@@ -618,6 +602,10 @@ onMounted(() => {
     margin-bottom: 0;
     padding-bottom: 0;
     border-bottom: 1px solid var(--n-border-color);
+  }
+
+  .post-card {
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.08);
   }
 
   .post-title {
