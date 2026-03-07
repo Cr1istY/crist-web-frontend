@@ -9,7 +9,7 @@
         </n-form-item>
 
         <n-form-item path="content" label="内容">
-          <MdEditor v-model="post.content" preview-theme="github" style="min-height: 300px" />
+          <MdEditor v-model="post.content" preview-theme="vuepress" style="min-height: 800px;"/>
         </n-form-item>
 
         <n-form-item path="excerpt" label="摘要">
@@ -99,7 +99,7 @@ onMounted(() => {
 
 <style scoped>
 .form-container {
-  max-width: 800px;
+  max-width: 80vw;
   margin: 0 auto;
 }
 
