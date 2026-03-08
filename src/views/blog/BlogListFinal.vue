@@ -1,8 +1,8 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="blog-layout">
-    <!-- 侧边栏：两端共用 -->
     <BlogSidebar
+      v-if="!isMobile"
       :posts="allPosts"
       :total-posts="sortedPosts.length"
       v-model:date="selectedDate"
@@ -11,6 +11,8 @@
       v-model:search="searchKeyword"
       @clear-filters="clearFilters"
     />
+
+    <BlogSideBarSearcher v-if="isMobile" v-model="searchKeyword" :posts="allPosts" />
 
     <main class="main-content">
       <!--
@@ -30,11 +32,7 @@
       <!-- === 移动端区域：无限滚动 === -->
       <template v-if="isMobile">
         <!-- 哨兵元素：用于触发加载 -->
-        <div
-          v-if="hasMoreData"
-          ref="loadTriggerRef"
-          class="load-trigger"
-        >
+        <div v-if="hasMoreData" ref="loadTriggerRef" class="load-trigger">
           <n-spin v-if="isLoadingMore" size="small" description="加载中..." />
           <n-divider v-else dashed>上拉加载更多</n-divider>
         </div>
@@ -68,6 +66,7 @@ import { useMessage } from 'naive-ui'
 import BlogSidebar from '@/components/blog/BlogSideabar.vue'
 import BlogPostItem from '@/components/blog/blog-post-item.vue'
 import PaginationControls from '@/components/blog/PaginationControls.vue'
+import BlogSideBarSearcher from '@/components/blog/blog-side-bar-searcher.vue'
 import { useBlogSearch } from '@/composables/useBlogSearch'
 import { usePostFiltering } from '@/composables/usePostFiltering'
 import { useTagRouting, useCategoryRouting } from '@/composables/useTagRouting'
@@ -111,7 +110,11 @@ const { filteredPosts } = usePostFiltering(allPosts, {
 
 // --- 排序逻辑 ---
 const hasActiveFilter = computed(
-  () => !!searchKeyword.value.trim() || !!selectedDate.value || !!selectedTag.value || !!selectedCat.value,
+  () =>
+    !!searchKeyword.value.trim() ||
+    !!selectedDate.value ||
+    !!selectedTag.value ||
+    !!selectedCat.value,
 )
 
 const sortedPosts = computed(() => {
@@ -312,9 +315,8 @@ watch(
       nextTick(() => setupObserver())
     }
   },
-  { deep: false }
+  { deep: false },
 )
-
 </script>
 
 <style scoped>
@@ -352,7 +354,7 @@ watch(
 @media (max-width: 768px) {
   .blog-layout {
     flex-direction: column;
-    padding: 0 16px 32px;
+    padding: 32px 16px 32px;
   }
   .main-content {
     margin-left: 0;
